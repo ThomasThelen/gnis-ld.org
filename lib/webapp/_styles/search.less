@@ -1,0 +1,245 @@
+@import "vars.less";
+
+// h1/.intro styles come from common.less
+.search-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+// ---------- Search bar ----------
+.search-bar {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+
+  .search-box {
+    flex: 1;
+    display: flex;
+    border: 1px solid @border;
+    border-radius: 999px;
+    background-color: #fff;
+    box-shadow: 0 8px 24px rgba(15, 34, 55, 0.06);
+    overflow: hidden;
+
+    &:focus-within {
+      border-color: @primary;
+    }
+
+    input {
+      flex: 1;
+      border: none;
+      font-family: inherit;
+      font-size: 1.05rem;
+      padding: 0.85rem 1.5rem;
+      color: @ink;
+
+      &:focus {
+        outline: none;
+      }
+    }
+
+    .search-btn {
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fff;
+      background-color: @primary;
+      border: none;
+      padding: 0 1.75rem;
+      cursor: pointer;
+
+      &:hover {
+        background-color: @primary-dark;
+      }
+    }
+  }
+
+  .filter-toggle {
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: @primary;
+    background-color: #fff;
+    border: 1px solid @border;
+    border-radius: 999px;
+    padding: 0 1.4rem;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover,
+    &.open {
+      border-color: @primary;
+    }
+
+    &.open {
+      background-color: @surface-alt;
+    }
+  }
+}
+
+// ---------- Filter panel ----------
+.filter-panel {
+  margin-top: 1rem;
+  border: 1px solid @border;
+  border-radius: 16px;
+  background-color: #fff;
+  box-shadow: 0 12px 30px rgba(15, 34, 55, 0.08);
+  padding: 1.4rem 1.6rem;
+
+  .filter-section {
+    & + .filter-section {
+      margin-top: 1.4rem;
+      padding-top: 1.4rem;
+      border-top: 1px solid @surface-alt;
+    }
+  }
+
+  .filter-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: @primary;
+    margin-bottom: 0.75rem;
+  }
+
+  .type-list {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.45rem 1rem;
+
+    .type-option {
+      font-size: 0.88rem;
+      color: @ink;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      cursor: pointer;
+
+      input {
+        accent-color: @primary;
+      }
+    }
+  }
+
+  .geo-row {
+    display: flex;
+    gap: 0.75rem;
+
+    input {
+      flex: 1;
+      font-family: inherit;
+      font-size: 0.9rem;
+      padding: 0.5rem 0.7rem;
+      border: 1px solid @border;
+      border-radius: 8px;
+      color: @ink;
+
+      &:focus {
+        outline: none;
+        border-color: @primary;
+      }
+    }
+  }
+}
+
+// ---------- Results ----------
+.status {
+  color: @muted;
+  font-size: 0.9rem;
+  margin: 1.25rem 0 1rem;
+
+  &.error {
+    color: #b3402a;
+  }
+}
+
+.results-list {
+  display: grid;
+  gap: 0.75rem;
+
+  .result-card {
+    border: 1px solid @border;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    background-color: #fff;
+
+    .result-name {
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    .uri-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-top: 0.5rem;
+
+      .uri-text {
+        font-family: @font-mono;
+        font-size: 0.82rem;
+        background-color: @surface-alt;
+        border: 1px solid @border;
+        border-radius: 8px;
+        padding: 0.4em 0.75em;
+        overflow-wrap: anywhere;
+      }
+
+      .copy-btn {
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: @primary;
+        background-color: #fff;
+        border: 1px solid @border;
+        border-radius: 8px;
+        padding: 0.35em 0.9em;
+        cursor: pointer;
+        white-space: nowrap;
+
+        &:hover {
+          border-color: @primary;
+        }
+
+        &.copied {
+          color: #fff;
+          background-color: @primary;
+          border-color: @primary;
+        }
+      }
+    }
+  }
+}
+
+.load-more {
+  margin-top: 1.25rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: @primary;
+  background-color: #fff;
+  border: 1px solid @primary;
+  border-radius: 10px;
+  padding: 0.55rem 1.4rem;
+  cursor: pointer;
+
+  &:hover {
+    color: #fff;
+    background-color: @primary;
+  }
+}
+
+@media (max-width: 700px) {
+  .search-bar {
+    flex-direction: column;
+  }
+
+  .filter-panel .type-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .filter-panel .geo-row {
+    flex-direction: column;
+  }
+}

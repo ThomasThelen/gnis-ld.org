@@ -1,12 +1,10 @@
 // Shared helpers for the query, search, and link pages. This is bundled into
-// each page's script by esbuild via import, never published standalone under
-// /script.
+// each page's script by esbuild via import.
 
 declare global {
 	interface Window { GNIS_BASE?: string }
 }
 
-// A term in a SPARQL JSON results binding
 export interface SparqlTerm {
 	type: 'uri' | 'literal' | 'bnode' | 'typed-literal';
 	value: string;
@@ -39,14 +37,34 @@ export const NS: Record<string, string> = {
 	uom: 'http://www.opengis.net/def/uom/OGC/1.0/',
 };
 
+/**
+ * Builds the PREFIX header for a query.
+ *
+ * @param a_names - Names of the namespaces the query uses; each must be a key of NS.
+ * @returns Newline-terminated PREFIX declarations, one per name.
+ */
 export const prefixes = (...a_names: string[]): string =>
 	a_names.map((s) => 'PREFIX ' + s + ': <' + NS[s] + '>').join('\n') + '\n';
 
-// The pages address elements they render themselves, so a missing element is
-// a programming error; the non-null cast keeps call sites readable.
+/**
+ * Selects a single element. The pages address elements they render themselves,
+ * so a missing element is a programming error; the non-null cast keeps call
+ * sites readable.
+ *
+ * @param s_sel - CSS selector for the element.
+ * @returns The first matching element, cast to T.
+ */
 export const $ = <T extends HTMLElement = HTMLElement>(s_sel: string): T =>
 	document.querySelector(s_sel) as T;
 
+/**
+ * Creates an HTML element.
+ *
+ * @param s_tag - Tag name.
+ * @param h_attrs - Attributes to set on the element.
+ * @param s_text - Text content, if any.
+ * @returns The new element.
+ */
 export function el(
 	s_tag: string,
 	h_attrs?: Record<string, string> | null,
@@ -58,19 +76,35 @@ export function el(
 	return d_node;
 }
 
-// Escape a user-supplied value for use inside a double-quoted SPARQL literal.
+/**
+ * Escapes a user-supplied value for use inside a double-quoted SPARQL literal.
+ *
+ * @param s - Raw value.
+ * @returns Escaped value, safe between double quotes.
+ */
 export function escapeLiteral(s: string): string {
 	return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
 		.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t');
 }
 
-// Only plain web URLs are safe to hyperlink; anything else (javascript:,
-// data:, urn:, ...) must be rendered as text.
+/**
+ * Returns whether a URI is safe to hyperlink. Only plain web URLs qualify;
+ * anything else (javascript:, data:, urn:, ...) must be rendered as text.
+ *
+ * @param s_uri - URI to test.
+ * @returns True when the URI is a plain http(s) URL.
+ */
 export function safeUri(s_uri: string): boolean {
 	return /^https?:\/\//i.test(s_uri);
 }
 
-// Shorten a URI to its local name for display.
+/**
+ * Shortens a URI to its local name for display.
+ *
+ * @param s_uri - Full URI.
+ * @returns The decoded last path segment, qualified with the parent segment
+ * when it is purely numeric.
+ */
 export function shortLabel(s_uri: string): string {
 	const a_parts = s_uri.replace(/[/#]+$/, '').split(/[/#]/).filter(Boolean);
 	if (!a_parts.length) return s_uri;
@@ -87,6 +121,12 @@ export function shortLabel(s_uri: string): string {
 	}
 }
 
+/**
+ * Returns the display label for a SPARQL term.
+ *
+ * @param h_term - Term from a result binding.
+ * @returns Short label for URIs; the (possibly truncated) value for literals.
+ */
 export function termLabel(h_term: SparqlTerm): string {
 	if (h_term.type === 'uri') return shortLabel(h_term.value);
 	let s_value = h_term.value;
@@ -94,8 +134,14 @@ export function termLabel(h_term: SparqlTerm): string {
 	return s_value;
 }
 
-// POST a query to the local endpoint. Resolves {res, body}; rejects with a
-// readable message on a non-2xx response.
+/**
+ * POSTs a query to the local endpoint.
+ *
+ * @param s_query - Complete SPARQL query text.
+ * @param s_accept - Accept header; defaults to SPARQL results JSON.
+ * @returns Promise resolving to the response and its body; rejects with a
+ * readable message on a non-2xx response.
+ */
 export function postSparql(
 	s_query: string,
 	s_accept?: string
@@ -115,7 +161,13 @@ export function postSparql(
 	});
 }
 
-// Parse a response body that must be SPARQL SELECT results JSON.
+/**
+ * Parses a response body that must be SPARQL SELECT results JSON.
+ *
+ * @param s_body - Raw response body.
+ * @returns The parsed result set.
+ * @throws Error when the body is not a SELECT result set.
+ */
 export function parseSelect(s_body: string): SelectResults {
 	let h_json: SelectResults;
 	try {

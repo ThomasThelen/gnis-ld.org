@@ -1,0 +1,33 @@
+extends layout.pug
+
+block content-header
+  link(rel='stylesheet', type='text/css', href='/style/search.css')
+  script.
+    window.GNIS_BASE = "#{base_url}";
+  script(src='/script/search.js' defer)
+
+block content-block
+  .search-page
+    h1 Search features
+    p.intro Search every federally recognized place name in GNIS-LD — then copy a feature's stable URI straight off its card. Open the filters to browse by feature type and location, no text needed.
+
+    form.search-bar#search-form
+      .search-box
+        input#f-name(type='search' placeholder='Search place names…' autocomplete='off' aria-label='Search place names')
+        button.search-btn(type='submit') Search
+      button.filter-toggle#filter-toggle(type='button' aria-expanded='false' aria-controls='filter-panel') Filters
+
+    .filter-panel#filter-panel(hidden)
+      .filter-section
+        .filter-label Feature type
+        #type-list.type-list
+      .filter-section
+        .filter-label Near a point
+        .geo-row
+          input#f-lat(type='number' step='any' min='-90' max='90' placeholder='latitude' aria-label='Latitude')
+          input#f-lon(type='number' step='any' min='-180' max='180' placeholder='longitude' aria-label='Longitude')
+          input#f-radius(type='number' step='any' min='0' placeholder='radius (km)' aria-label='Radius in kilometers')
+
+    .status#search-status Type a name, or open Filters to browse by type or location.
+    #results-list.results-list
+    button#load-more.load-more(hidden) Load more

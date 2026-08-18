@@ -1,34 +1,48 @@
 extends layout.pug
 
 block content-header
-  script(src='script/queries.js')
-  <link href="https://unpkg.com/@triply/yasgui/build/yasgui.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://unpkg.com/@triply/yasgui/build/yasgui.min.js"></script>
-block content-block
-  body
-    .content-layout
-      .left-col 
-      .content
-        .intro
-          h1 Query Examples
-          p This page has a number of queries that demonstrate particular aspects of the GNIS-LD dataset.
-          h2 What places are in Juneau?
-          p This query shows how to query for features that are in a particular area of interest, in this case Juneau.
-          <button onclick="addJuneau()">Try it out!</button>
-
-          p This query retrieves all of the features whose elevation is greater than 10,000 feet.
-          h2 What are the features above 10,000 ft?
-          <button onclick="addElevation()">Try it out!</button>
-
-          h2 What are all of the Dams?
-          p GNIS-LD has records for a number of dams; this query fetches all of the dams that are in the database
-          <button onclick="addDam()">Try it out!</button>
-
-          <br><br><br>
-          p Query the gnis-ld graph store by writing your query in the box below and clicking the 'Play' button at the upper right side of it.
-          <div id="yasgui"></div>
-          <style>.yasgui .autocompleteWrapper { }</style>
-
+  link(rel='stylesheet', type='text/css', href='/style/queries.css')
   script.
-    var endpoint_address = "#{base_url}";
-    const yasgui = new Yasgui(document.getElementById("yasgui"), { requestConfig: { endpoint: "https://"+endpoint_address+"/sparql" }, copyEndpointOnNewTab: true})
+    window.GNIS_BASE = "#{base_url}";
+  script(src='/script/queries.js' defer)
+
+block content-block
+  .queries-page
+    h1 Explore
+    p.intro Explore the GNIS-LD knowledge graph visually. Pick a starting point below, switch between visualizations, and scroll down for the full result table — or edit the SPARQL directly.
+
+    .example-chips
+      button.chip.active(data-example='california') Features in California
+      button.chip(data-example='rainier') Mount Rainier
+      button.chip(data-example='juneau') Places in Juneau
+      button.chip(data-example='waterfalls') Waterfalls
+      button.chip(data-example='reservoirs') Reservoirs
+
+    .results-card.viz-card
+      .view-tabs(role='tablist')
+        button.view-tab.active(data-view='graph') Graph
+        button.view-tab(data-view='types') Types
+        button.view-tab(data-view='bubbles') Bubbles
+        span.status#query-status
+      .view-pane.active#graph-view
+        .empty-state Loading the graph…
+      .view-pane#types-view
+        .empty-state Run a query to see a breakdown of results by feature type.
+      .view-pane#bubbles-view
+        .empty-state Run a query to see feature types as sized bubbles.
+
+    details.editor-details
+      summary Edit the SPARQL
+      .editor-card
+        textarea.query-input(spellcheck='false' aria-label='SPARQL query')
+        .editor-bar
+          button.run-btn#run-btn Run query
+          span.hint #[kbd Ctrl]+#[kbd Enter]
+
+    .results-card.table-card
+      .table-bar
+        span.table-title Results
+        span.table-meta#table-meta
+        a.download-link#download-link(hidden download='results.json') Download full response
+      #table-view
+        .empty-state Results will appear here.
