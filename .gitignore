@@ -10,3 +10,7 @@ data
 .git-*
 !plugins/package.json
 
+
+# archived database dumps live on disk, not in git
+archives/*
+!archives/.gitkeep

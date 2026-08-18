@@ -1,24 +1,16 @@
 # Dockerfile for GNIS-LD frontend
-FROM node:17-alpine3.13
-MAINTAINER DataONE <support@dataone.org>
+FROM node:24-alpine
+LABEL org.opencontainers.image.authors="DataONE <support@dataone.org>"
 
-# web server
-EXPOSE 80
+# web server (config.app.ts)
+EXPOSE 3006
 
 # source code
 WORKDIR /src/app
 COPY . .
 
-# install packages
-RUN apk update && \
-    apk upgrade
-
-RUN apk --no-cache add make python3 gcc postgresql-dev g++
-
-# install software
-RUN npm i -g gulp
-RUN npm i \
-    && gulp
+# install dependencies and build client assets
+RUN npm ci && npm run build
 
 # entrypoint
-CMD ["npm", "start"]
+CMD ["npm", "start", "--", "-p", "3006"]

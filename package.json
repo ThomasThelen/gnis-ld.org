@@ -15,46 +15,25 @@
     "semantic-web"
   ],
   "scripts": {
-    "start": "node lib/js/server.js"
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit && node scripts/build.js",
+    "watch": "node scripts/build.js --watch"
   },
   "devDependencies": {
-    "browserify": "^17.0.0",
-    "gulp": "^4.0.2",
-    "gulp-debug": "^4.0.0",
-    "gulp-if": "^3.0.0",
-    "gulp-plumber": "^1.1.0",
-    "gulp-pug": "^5.0.0",
-    "gulp-less": "^5.0.0",
-    "gulp-rename": "^2.0.0",
-    "gulp-sourcemaps": "^3.0.0",
-    "gulp-tap": "^2.0.0",
-    "gulp-util": "^3.0.8",
-    "gulp-uglify": "^3.0.2",
-    "pg-native": "^3.0.0",
-    "pug": "^3.0.2",
-    "vinyl-buffer": "^1.0.1",
-    "vinyl-source-stream": "^2.0.0"
+    "@types/express": "^5.0.6",
+    "@types/minimist": "^1.2.5",
+    "@types/node": "^26.2.0",
+    "@types/wellknown": "^0.5.8",
+    "esbuild": "^0.25.0",
+    "less": "^4.2.2",
+    "typescript": "^7.0.2"
   },
   "dependencies": {
-    "body-parser": "^1.17.2",
-    "brace": "^0.11.1",
-    "browser-request": "^0.3.3",
-    "browser-sync": "^2.27.5",
-    "browserify-middleware": "^8.1.1",
-    "color-scheme": "^1.0.0",
-    "drag-drop": "^2.13.2",
-    "express": "^4.15.3",
-    "express-negotiate": "0.0.5",
-    "font-awesome": "^4.7.0",
-    "http-proxy-middleware": "^2.0.1",
-    "jquery-browserify": "^1.8.1",
-    "jsonld": "^1.0.1",
-    "mkdirp": "^1.0.4",
-    "pg": "^8.0.0",
-    "socket.io": "^2.0.3",
-    "socket.io-client": "^2.0.3",
-    "socket.io-stream": "^0.9.1",
-    "stream-to-array": "^2.3.0",
-    "uglifyify": "^5.0.2"
+    "express": "^4.21.2",
+    "http-proxy-middleware": "^3.0.3",
+    "minimist": "^1.2.8",
+    "pug": "^3.0.3",
+    "wellknown": "^0.5.0"
   }
 }
