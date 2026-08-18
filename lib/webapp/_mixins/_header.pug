@@ -1,5 +1,15 @@
 mixin header
-  .head 
-    .banner
-      .text GNIS Linked Data
-      .photographer photo by <a class="peLink" href="https://paulearlephotography.com" target="_blank" >Paul Earle</a>
+  header.site-header
+    .site-header-inner
+      a.brand(href='/') GNIS#[span.brand-accent -LD]
+      nav.site-nav
+        a.nav-link(href='/') Home
+        a.nav-link(href='/search') Search
+        .nav-group
+          a.nav-link.nav-group-trigger(href='/dataset') Data
+          .nav-dropdown
+            a.dropdown-link(href='/explore') Explore
+            a.dropdown-link(href='/vocabularies') Vocabulary
+            a.dropdown-link(href='/docs') Documentation
+            a.dropdown-link(href='/downloads') Downloads
+        a.nav-link(href='/about') About

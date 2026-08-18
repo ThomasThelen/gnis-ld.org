@@ -1,139 +1,458 @@
-a {
-  text-decoration: none;
+@import "vars.less";
+
+* {
+  box-sizing: border-box;
 }
 
-a:visited {
-  color:blue;
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  // The body is a 3 column, three row grid. The top row across all columns is the banner.
-  // The second row is the page content. The left and right collumns are the page gutters while
-  // the middle holds the actual page content.
-  // The last row across all columns is the footer.
-  font-family: arial;
+  margin: 0;
+  font-family: @font-sans;
+  font-size: 16px;
+  line-height: 1.6;
+  color: @ink;
+  background-color: @surface;
 
-  .head {
-    position: relative;
+  // Sticky footer: short pages (e.g. an empty search) still pin
+  // the footer to the bottom of the viewport.
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.site-main {
+  flex: 1 0 auto;
+}
+
+a {
+  color: @primary;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+h1, h2, h3 {
+  line-height: 1.2;
+  color: @ink;
+  // anchored headings land below the sticky header
+  scroll-margin-top: 5rem;
+}
+
+code {
+  font-family: @font-mono;
+  font-size: 0.9em;
+  background-color: @surface-alt;
+  border: 1px solid @border;
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+}
+
+// ---------- Buttons (shared) ----------
+.btn-primary {
+  display: inline-block;
+  padding: 0.65rem 1.25rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #fff;
+  background-color: @primary;
+
+  &:hover {
+    background-color: @primary-dark;
+    text-decoration: none;
+  }
+}
+
+.btn-link {
+  font-weight: 600;
+
+  &::after {
+    content: ' \2192';
+  }
+}
+
+// ---------- Page shells: wide workspace pages ----------
+.queries-page h1,
+.search-page h1 {
+  color: @primary;
+  font-size: 1.9rem;
+  margin: 0 0 0.5rem;
+}
+
+.queries-page .intro,
+.search-page .intro {
+  color: @muted;
+  max-width: 46em;
+  margin: 0 0 1.5rem;
+}
+
+// ---------- Header ----------
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background-color: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid @border;
+
+  .site-header-inner {
+    max-width: @container;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    height: 4rem;
     display: flex;
-    // The head is the top row in the body grid
-    grid-area: 1 / 1 / 2 / 2; 
-    background-image: url("/images/banner.png");
-    background-repeat: no-repeat;
-    background-size: cover;
-    height: 10rem;
     align-items: center;
-    justify-content: center;
-    .text {
-      font-size: 3rem;
-    }
-    .photographer {
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      color: white;
-      .peLink {
-        text-decoration: none;  
-        color: white;
-      }
-      
-    }
+    justify-content: space-between;
   }
-  .content-layout {
-    height: 100%;
 
-    // The page layout is the third row in the body grid
-    grid-area: 3 / 1 / 4 / 2;
-    // The content is *also* a 1x3 grid. The first column is the left border, the middle is the page content
-    // and the rightmost is the navigation menu
-    display: grid;
-    grid-template-columns: 10% 80% 10%;
-    
-    .left-col {
-      grid-area: 1 / 1 / 2 / 2; 
+  .brand {
+    font-weight: 700;
+    font-size: 1.2rem;
+    letter-spacing: 0.01em;
+    color: @ink;
+
+    .brand-accent {
+      color: @primary;
     }
 
-    .content {
-      grid-area: 1 / 2 / 2 / 3;
-
-      .navigation {
-        display: grid;
-        width: 15fr;
-        height: 5fr;
-        grid-area: 2 / 1 / 3 / 2;
-        grid-template-columns: repeat(3, 2fr);
-        grid-template-rows: 3fr;
-        .nav-item {
-          background: inherit;
-          height: 2rem;
-          margin-top: 2rem;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          .home {
-            grid-area: 1 / 1 / 2 / 2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-
-          .queries {
-            grid-area: 1 / 2 / 2 / 3; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-
-          .about {
-            grid-area: 1 / 3 / 2 / 4; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-        }
-        .nav-link {
-          text-decoration: none;
-          text-transform: none;
-          color: rgb(21,76,121);
-        }
-      }
-    }
-
-    .nav-area {
-      grid-area: 1 / 3 / 2 / 4;
+    &:hover {
+      text-decoration: none;
     }
   }
 
-  .footer {
+  .site-nav {
     display: flex;
-    grid-area: 3 / 1 / 4 / 4;
-    height: 5rem;
-    margin-top: 5rem;
-    background-color: lightslategrey;
-    align-items:center;
+    align-items: center;
+    gap: 1.75rem;
 
-    .copyright {
-      font-size: 1rem;
-      color: #154c79;
-      flex: 1;
-      margin-left: 1rem;
+    .nav-link {
+      color: @muted;
+      font-weight: 500;
+      font-size: 0.95rem;
+
+      &:hover {
+        color: @primary;
+        text-decoration: none;
+      }
+
+      &.active {
+        color: @primary;
+        font-weight: 600;
+      }
     }
 
-    .name {
-      font-size: 1rem;
-      color: #154c79;
-      flex: 1;
+    .nav-group {
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: 4rem; // fill the header so the dropdown sits flush beneath it
+
+      .nav-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: -0.75rem;
+        min-width: 10rem;
+        padding: 0.4rem;
+        background-color: #fff;
+        border: 1px solid @border;
+        border-radius: 10px;
+        box-shadow: 0 12px 30px rgba(15, 34, 55, 0.12);
+
+        .dropdown-link {
+          display: block;
+          padding: 0.5rem 0.8rem;
+          border-radius: 6px;
+          font-size: 0.92rem;
+          font-weight: 500;
+          color: @muted;
+
+          &:hover {
+            color: @primary;
+            background-color: @surface-alt;
+            text-decoration: none;
+          }
+        }
+      }
+
+      &:hover .nav-dropdown,
+      &:focus-within .nav-dropdown {
+        display: block;
+      }
     }
   }
 }
 
+// ---------- 404 ----------
+.page-content.notfound {
+  text-align: center;
+  padding-top: 5rem;
+  padding-bottom: 6rem;
 
+  h1 {
+    font-size: 5rem;
+    letter-spacing: -0.03em;
+    margin: 0;
+  }
 
-h1,h2,h3 {
-	font-family: Ubuntu, Helvetica, sans-serif;
-  color: rgb(21,76,121);
+  .notfound-lede {
+    color: @muted;
+    max-width: 34em;
+    margin: 0.75rem auto 2rem;
+  }
+
+  .notfound-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .notfound-hint {
+    font-size: 0.9rem;
+    color: @muted;
+  }
 }
 
-.vowlGraph {
-  background-color: grey;
+// ---------- Standard page container (queries, about) ----------
+.page-content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+
+  h1 {
+    color: @primary;
+    font-size: 1.9rem;
+    margin-top: 2.5rem;
+  }
+
+  h2 {
+    font-size: 1.35rem;
+    margin-top: 2rem;
+  }
+
+  > :first-child h1,
+  > h1:first-child {
+    margin-top: 0;
+  }
+
+  button {
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #fff;
+    background-color: @primary;
+    border: none;
+    border-radius: 8px;
+    padding: 0.55rem 1.1rem;
+    cursor: pointer;
+
+    &:hover {
+      background-color: @primary-dark;
+    }
+  }
 }
+
+.doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  margin: 1rem 0 1.5rem;
+
+  th {
+    text-align: left;
+    color: @primary;
+    background-color: @surface-alt;
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid @border;
+  }
+
+  td {
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid @surface-alt;
+    vertical-align: top;
+
+    code {
+      white-space: nowrap;
+    }
+  }
+}
+
+// ---------- FAQ accordion ----------
+.faq {
+  display: grid;
+  gap: 0.6rem;
+  margin: 1.25rem 0;
+
+  .faq-item {
+    border: 1px solid @border;
+    border-radius: 12px;
+    background-color: #fff;
+
+    summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.9rem 1.25rem;
+      font-weight: 600;
+      color: @ink;
+      cursor: pointer;
+
+      &::-webkit-details-marker {
+        display: none;
+      }
+
+      &::after {
+        content: '+';
+        font-size: 1.3rem;
+        font-weight: 400;
+        color: @primary;
+        line-height: 1;
+        flex-shrink: 0;
+      }
+
+      &:hover {
+        color: @primary;
+      }
+    }
+
+    &[open] summary::after {
+      content: '−';
+    }
+
+    .faq-body {
+      padding: 0 1.25rem 1rem;
+
+      p {
+        margin: 0 0 0.75rem;
+        color: @muted;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+}
+
+.quote {
+  background-color: @surface-alt;
+  border-left: 3px solid @primary;
+  border-radius: 0 8px 8px 0;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+}
+
+.list {
+  .item {
+    margin-bottom: 1.25rem;
+
+    .title {
+      font-weight: 700;
+    }
+
+    .info {
+      color: @muted;
+    }
+  }
+}
+
+// ---------- Code cards (homepage heroes) ----------
+.code-card {
+  background-color: @code-bg;
+  color: @code-ink;
+  border-radius: 16px;
+  padding: 1.25rem 1.75rem 1.5rem;
+  box-shadow: 0 20px 45px rgba(15, 34, 55, 0.18);
+  overflow-x: auto;
+
+  .code-card-head {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 1rem;
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .code-card-name {
+      margin-left: auto;
+      font-family: @font-mono;
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.45);
+    }
+  }
+
+  pre {
+    margin: 0;
+    font-family: @font-mono;
+    font-size: 0.88rem;
+    line-height: 1.65;
+  }
+
+  .kw {
+    color: #7cc0ff;
+  }
+
+  .str {
+    color: #a5d6a7;
+  }
+
+  .cm {
+    color: #6b8299;
+  }
+}
+
+.page-content .code-card {
+  margin: 1.25rem 0 2rem;
+}
+
+// ---------- Footer ----------
+.site-footer {
+  background-color: @code-bg;
+  color: #b8c7d6;
+  margin-top: 4rem;
+
+  .site-footer-inner {
+    max-width: @container;
+    margin: 0 auto;
+    padding: 2.25rem 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-brand {
+    color: #fff;
+    font-weight: 700;
+  }
+
+  .footer-copy {
+    font-size: 0.9rem;
+  }
+
+  .footer-links a {
+    color: #b8c7d6;
+    margin-left: 1.5rem;
+
+    &:hover {
+      color: #fff;
+      text-decoration: none;
+    }
+  }
+}
+

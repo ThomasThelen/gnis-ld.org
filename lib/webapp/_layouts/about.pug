@@ -1,77 +1,38 @@
 extends layout.pug
 
 block content-header
-  link(rel='stylesheet', type='text/css', href='/style/common.css')
+  link(rel='stylesheet', type='text/css', href='/style/team.css')
+
 block content-block
-  body
-    .content-layout
-      .left-col 
-      .content
-        .background 
-          h1 Background 
-          p GNIS-LD was created by the <a href="https://www.geog.ucsb.edu/services/research-facilities" target="_blank">UCSB STKO Lab</a>. This effort led to the creation of a number of software products, listed in the source code section. Among these included the full GNIS-LD ETL pipeline with a web interface. This team was composed of 
-          .list 
-            .item 
-              .title Blake Regalia
-            .item 
-              .title Krzysztof Janowicz
-            .item 
-              .title Gengchen Mai
-            .item
-              .title Dalia Varanka
-            .item 
-              .title E. Lynn Usery
-          p The project is currently maintained by <a href="https://www.dataone.org/" target="_blank">DataONE</a> through funding from NSF grant <a href="https://www.nsf.gov/awardsearch/showAward?AWD_ID=2033521" target="_blank">2033521</a> under the KnowWhereGraph project. With this change, the infrastructure was extended to deploy on Kubernetes and the website and various software components were updated.
+  .page-content
+    h1 About
+    p GNIS-LD is the Linked Data version of the <a href="https://www.usgs.gov/tools/geographic-names-information-system-gnis" target="_blank">Geographic Names Information System</a>, the U.S. federal gazetteer maintained by the USGS and the Board on Geographic Names. It gives every named feature (more than two million summits, streams, lakes, and populated places) a permanent, dereferenceable URI, and makes the full record queryable over SPARQL and downloadable as quarterly versioned releases.
+    p The service exists so that anyone can anchor their data to stable, authoritative geographic identifiers instead of ambiguous place-name strings.
 
+    h2 Open Source Governance
+    .steward-row
+      a.steward-logo(href='https://www.dataone.org/' target='_blank' aria-label='DataONE')
+        img(src='/images/dataone.svg' alt='DataONE logo')
+      p.steward-text GNIS-LD is an open-source project stewarded by <a href="https://www.dataone.org/" target="_blank">DataONE</a>, whose mission is making earth and environmental data open, persistent, and accessible. As steward, DataONE operates the infrastructure, maintains the software, and is accountable for the service's availability and the dataset's integrity.
+    h2 Emeritus Team
+    p The project was created at the <a href="https://www.geog.ucsb.edu/services/research-facilities" target="_blank">UCSB STKO Lab</a> and later maintained under the KnowWhereGraph project, funded by NSF grant <a href="https://www.nsf.gov/awardsearch/showAward?AWD_ID=2033521" target="_blank">#2033521</a>; the grant has since concluded, and stewardship passed to DataONE. The original team, from the UCSB STKO Lab and USGS:
+    .team-grid
+      .person-card
+        .person-name Blake Regalia
+      .person-card
+        .person-name Krzysztof Janowicz
+      .person-card
+        .person-name Gengchen Mai
+      .person-card
+        .person-name Dalia Varanka
+      .person-card
+        .person-name E. Lynn Usery
 
-        .publications
-          h1 Publications
-          p The original project published two papers about work in this area. These are recommended reading to learn more about project motivations and the original software stack.
-          p Regalia, B., Janowicz, K. , and McKenzie, G. (2019): <a href="https://blake-regalia.net/resource/2019-TGIS_Topology.pdf">Computing and Querying Strict, Approximate, and Metrically-Refined Topological Relations in Linked Geographic Data.</a> Transactions in GIS.
-          p Regalia, B., Janowicz, K. , and Mai, G. (2018): <a href="https://link.springer.com/chapter/10.1007/978-3-319-93417-4_34" target="_blank">GNIS-LD: Serving and Visualizing the Geographic Names Information System Gazetteer As Linked Data.</a> 15th ESWC Conference. 3-7 June, Heraklion, Crete.
+    h2 Publications
+    p Regalia, B., Janowicz, K., and McKenzie, G. (2019): <a href="https://blake-regalia.net/resource/2019-TGIS_Topology.pdf" target="_blank">Computing and Querying Strict, Approximate, and Metrically-Refined Topological Relations in Linked Geographic Data.</a> Transactions in GIS.
+    p Regalia, B., Janowicz, K., and Mai, G. (2018): <a href="https://link.springer.com/chapter/10.1007/978-3-319-93417-4_34" target="_blank">GNIS-LD: Serving and Visualizing the Geographic Names Information System Gazetteer As Linked Data.</a> 15th ESWC Conference.
 
-        .sources
-          h1 Current Source code
-          p The source code for the current GNIS-LD project is hosted on GitHub by DataONE.
-          .list
-            .item
-              .title 
-                a(href="https://github.com/DataONEorg/gnis-deployment/" target="_blank") gnis-deployment
-              .info The Kubernetes deployment responsible for container orchestration and networking.
-            .item
-              .title 
-                a(href="https://github.com/DataONEorg/usgs-triplifier" target="_blank") USGS Triplifier
-              .info Converts GNIS into RDF.
-            .item
-              .title
-                a(href="https://github.com/dataONEorg/gnis-ld.org" target="_blank") GNIS-LD.org
-              .info This website which includes dereferencing logic, redirection, and SPARQL query proxying.
-
-        .original_project
-          h1 Original Source Code 
-          p The source code for the GNIS-LD project, developed at the UCSB STKO Lab can be found below.
-          .list
-            .item
-              .title 
-                a(href="https://github.com/blake-regalia/usgs-ld") USGS-LD
-              .info Bundles the entire pipeline into a Docker Compose file and a helper bash script. Its components are listed out below.
-            .item
-              .title 
-                a(href="https://github.com/blake-regalia/usgs-triplifier") USGS Triplifier
-              .info Converts GNIS and other USGS datasets (such as NHD) into RDF.
-            .item
-              .title
-                a(href="https://github.com/blake-regalia/kiwi-bulk-loader") KiWi Bulk Loader
-              .info Loads triples directly into KiWi's PostgreSQL tables in parallel.
-            .item
-              .title
-                a(href="https://github.com/blake-regalia/marmotta/tree/usgs-ld") Apache Marmotta
-              .info The 584 branch of Apache Marmotta supports GeoSPARQL.
-            .item
-              .title
-                a(href="https://github.com/blake-regalia/gnis-ld.org") GNIS-LD.org
-              .info This website which includes dereferencing logic, redirection, and SPARQL query proxying.
-
-        .contact
-          h1 Contact 
-          p For any questions about the service, contact DataONE Support (support@dataone.org).
+    h2 Contact
+    p Questions about the service? Email DataONE Support at <a href="mailto:support@dataone.org">support@dataone.org</a>.
+    p Found a bug or have a feature request? <a href="https://github.com/DataONEorg/gnis-ld.org/issues" target="_blank">File an issue on GitHub</a>.
+    p Prefer chat? Join the <a href="https://slack.nceas.ucsb.edu/" target="_blank">NCEAS Slack</a>.

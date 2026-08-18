@@ -1,0 +1,47 @@
+@import "vars.less";
+
+.vocab-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin: 2rem 0 2.5rem;
+}
+
+.vocab-panel {
+  border: 1px solid @border;
+  border-radius: 16px;
+  padding: 1.75rem;
+  background-color: #fff;
+  box-shadow: 0 12px 30px rgba(15, 34, 55, 0.06);
+
+  h2 {
+    margin: 0 0 0.5rem;
+    font-family: @font-mono;
+    color: @primary;
+  }
+
+  .ns {
+    display: inline-block;
+    font-size: 0.78rem;
+    margin-bottom: 0.75rem;
+    word-break: break-all;
+  }
+
+  p {
+    color: @muted;
+  }
+}
+
+// .btn-primary / .btn-link come from common.less
+.vocab-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 760px) {
+  .vocab-grid {
+    grid-template-columns: 1fr;
+  }
+}

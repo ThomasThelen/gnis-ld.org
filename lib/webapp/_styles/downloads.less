@@ -1,0 +1,78 @@
+@import "vars.less";
+
+.release-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  margin: 1rem 0 1.5rem;
+
+  th {
+    text-align: left;
+    color: @primary;
+    background-color: @surface-alt;
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid @border;
+  }
+
+  td {
+    padding: 0.7rem 0.85rem;
+    border-bottom: 1px solid @surface-alt;
+    vertical-align: middle;
+  }
+
+  tr.current td {
+    background-color: rgba(47, 128, 195, 0.06);
+    font-weight: 600;
+  }
+
+  .current-chip {
+    margin-left: 0.6em;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #fff;
+    background-color: @accent;
+    border-radius: 999px;
+    padding: 0.15em 0.7em;
+    vertical-align: middle;
+  }
+
+  .dl-btn {
+    display: inline-block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: @primary;
+    background-color: #fff;
+    border: 1px solid @border;
+    border-radius: 8px;
+    padding: 0.35em 1em;
+
+    &:hover {
+      border-color: @primary;
+      text-decoration: none;
+    }
+  }
+
+  .dl-cell {
+    white-space: nowrap;
+  }
+
+  // The release's historical companion dump (retained dropped features)
+  .dl-historical {
+    display: block;
+    margin-top: 0.35rem;
+    font-family: @font-mono;
+    font-size: 0.72rem;
+    color: @muted;
+
+    &:hover {
+      color: @primary;
+    }
+  }
+}
+
+.archive-note {
+  font-size: 0.9rem;
+  color: @muted;
+}

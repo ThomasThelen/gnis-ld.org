@@ -2,48 +2,246 @@ extends layout.pug
 
 block content-header
   link(rel='stylesheet', type='text/css', href='/style/index.css')
-  script(src='/script/index.js')
 
 block content-block
-  body
-    .content-layout
-      .left-col 
-      .content
-        .page-content
-          .intro
-            h1 The official Linked Data version of the USGS GNIS dataset
-            p From <a href="https://geonames.usgs.gov/domestic/index.html" target="_blank">the Board on Geographic Names</a>:
-            p.quote The Geographic Names Information System (GNIS) is the Federal and national standard for geographic nomenclature. The U.S. Geological Survey developed the GNIS in support of the U.S. Board on Geographic Names as the official repository of domestic geographic names data, the official vehicle for geographic names use by all departments of the Federal Government, and the source for applying geographic names to Federal electronic and printed products. <br><br> The GNIS contains information about physical and cultural geographic features of all types in the United States, associated areas, and Antarctica, current and historical, but not including roads and highways. The database holds the Federally recognized name of each feature and defines the feature location by state, county, USGS topographic map, and geographic coordinates. Other attributes include names or spellings other than the official name, feature designations, feature classification, historical and descriptive information, and for some categories the geometric boundaries.
-            p The GNIS-LD service exposes the GNIS information in a linked data format, conforming to the W3C <a href="https://www.w3.org/TR/rdf11-concepts/" target="_blank">RDF</a> standard. This enables intelligent querying around US federally recognized places. The backing graph store supports the GeoSPARQL standard enabling powerful geospatial reasoning over the dataset.
-            p The project is currently funded by KnowWhereGraph, NSF <a href="https://www.nsf.gov/awardsearch/showAward?AWD_ID=2033521" target="_blank">#2033521</a> and was originally completed by the <a href="https://www.geog.ucsb.edu/services/research-facilities" target="_blank">STKO Lab</a> at University of California Santa Barbara. For more information about the project, team, and publications visit the <a href="/about">About</a> page.
+  //- Hero 1: entity resolution (static)
+  section.hero-band
+    .hero
+      .hero-copy
+        h1.hero-title Resolve entities to #[span.accent stable USGS identifiers]
+        p.lede Every federally recognized place name in the United States has a persistent, dereferenceable URI in GNIS-LD. Resolve to stable identifiers you can cite, link, and query.
+        .hero-actions
+          a.btn-primary(href='/search') Search &amp; link
+          a.btn-link(href='/explore') Explore the data
+      .hero-visual
+        .demo-card
+          p.demo-sentence
+            | “The climbing season on
+            br
+            span.entity Denali
+            |  begins in late April, when expedition teams fly onto the Kahiltna Glacier.”
+          .demo-resolution
+            svg.elbow(width='44' height='50' viewBox='0 0 44 50' aria-hidden='true')
+              path(d='M10 2 v26 q0 10 10 10 h12' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round')
+              path(d='M27 31 l9 7 -9 7' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round')
+            a.uri-pill(href='/lod/gnis/feature/1414314') http://#{base_url}/lod/gnis/feature/1414314
 
-          .queries
-            h1 Data 
-            p The GNIS-LD dataset is available to the public free of charge. The data can be obtained by querying the SPARQL endpoint or by downloading a database archive. The data is hosted in a GraphDB repository using the RDFS-Plus inference ruleset.
+  //- Hero 2: rotating carousel
+  section.hero-band.alt
+    .hero-carousel
+      button.carousel-arrow.prev(type='button' aria-label='Previous slide') ‹
+      .carousel-viewport
+        .carousel-track#carousel-track
+          .carousel-slide
+            .hero.reverse
+              .hero-visual
+                .code-card
+                  .code-card-head
+                    span.dot
+                    span.dot
+                    span.dot
+                    span.code-card-name verify.rq
+                  pre.
+                    <span class="kw">SELECT</span> ?official <span class="kw">WHERE</span> {
+                      <span class="kw">SERVICE</span> <span class="str">&lt;https://#{base_url}/sparql&gt;</span> {
+                        ?peak gnis:alternativeName <span class="str">"Denali"@en</span> ;
+                              gnis:officialName ?official .
+                      }
+                    }
+                    <span class="cm"># ?official = "Mount McKinley"</span>
+              .hero-copy
+                h2.hero-title Verify facts against machine-readable government data
+                p.lede Add a single #[code SERVICE] clause and any SPARQL engine can federate queries to GNIS-LD, joining your data with the authoritative USGS record.
+                .hero-actions
+                  a.btn-link(href='/integrations') Learn more
+          .carousel-slide
+            .hero
+              .hero-copy
+                h2.hero-title Two small vocabularies describe every feature
+                p.lede The #[code usgs] ontology defines what a feature is: summits, streams, dams, ridges. The #[code gnis] ontology describes what we know about it: names, counties, descriptions, and history. Together they make every record self-describing.
+                .hero-actions
+                  a.btn-link(href='/vocabularies') Browse the vocabularies
+              .hero-visual
+                .vocab-card
+                  svg.vocab-graph(viewBox='0 0 460 300' aria-hidden='true')
+                    g.vg-edges
+                      line(x1='230' y1='150' x2='104' y2='68')
+                      line(x1='230' y1='150' x2='362' y2='72')
+                      line(x1='230' y1='150' x2='106' y2='236')
+                      line(x1='230' y1='150' x2='356' y2='230')
+                    g.vg-edge-labels
+                      text(x='152' y='98') rdf:type
+                      text(x='296' y='100') gnis:officialName
+                      text(x='140' y='206') gnis:state
+                      text(x='300' y='200') gnis:county
+                    g.vg-nodes
+                      g.vg-node.hub
+                        circle(cx='230' cy='150' r='16')
+                        text(x='230' y='185') gnisf:1414314
+                      g.vg-node
+                        circle(cx='104' cy='68' r='11')
+                        text(x='104' y='46') usgs:Summit
+                      g.vg-node.literal
+                        circle(cx='362' cy='72' r='8')
+                        text(x='352' y='52') “Mount McKinley”
+                      g.vg-node
+                        circle(cx='106' cy='236' r='11')
+                        text(x='106' y='262') Alaska
+                      g.vg-node
+                        circle(cx='356' cy='230' r='11')
+                        text(x='356' y='256') Denali Borough
+          .carousel-slide
+            .hero
+              .hero-copy
+                h2.hero-title Agentic access, enabled by #[span.accent VoID + SPARQL]
+                p.lede Autonomous agents can use GNIS-LD without a human in the loop: the machine-readable dataset description at #[code /.well-known/void] advertises the endpoint, vocabularies, and downloads, and SPARQL answers structured questions directly.
+                .hero-actions
+                  a.btn-link(href='/docs#metadata') Read about dataset metadata
+              .hero-visual
+                .code-card
+                  .code-card-head
+                    span.dot
+                    span.dot
+                    span.dot
+                    span.code-card-name agent.sh
+                  pre.
+                    <span class="cm"># 1. discover the dataset</span>
+                    <span class="cm">$</span> curl https://#{base_url}/.well-known/void
 
-            h2 SPARQL Endpoint
-            p A public SPARQL endpoint is available at the <a href="/sparql" target="_blank">sparql</a> page. Queries have a time limit of one hour but are not limited by the number of results returned.
-            p An example query using cURL,
-            p.quote curl -d 'query=SELECT * WHERE {?s ?p ?o}' https://gnis-ld.org/sparql
-            p A user friendly way to test queries is located on the <a href="/queries">queries</a> page. It provides a number of example queries and an easy to use SPARQL tool.
-            
-            h2 Database Archive
-            p If a complete archive of the database is needed, it can be downloaded at the <a href="/data" target="_blank">data</a> endpoint page. The database is composed of approximately 35 million triples; the exported file is approximately 5.4 GB. 
-            
-            h2 Structure
-            p The data is described with a number of common ontologies-most of which are W3C standards. Two ontologies were developed for this project, <a href="/images/gnis.svg" target='_blank'>gnis</a> and <a href="/images/usgs.svg" target='_blank'>usgs</a>. Both ontologies are used to describe the data. The usgs ontology contains terms about features. For example, it contains definitions for streams, plains, ridges, etc. The gnis ontology creates terms for talking about counties and extends properties of generic features.
-            p The OWL files defining the two ontologies can be downloaded from the cards below.
-            
-            .card-container
-              .cards 
-                .card
-                  a(href='/resource/ontologies/usgs.ttl' target='_blank')
-                    .usgs
-                      .title-banner 
-                        .title Download USGS
-                .card
-                  a(href='/resource/ontologies/gnis.ttl' target='_blank')
-                    .gnis
-                      .title-banner 
-                        .title Download GNIS
+                    <span class="cm"># 2. ask it questions</span>
+                    <span class="cm">$</span> curl -H <span class="str">'Accept: application/sparql-results+json'</span> \
+                        -d <span class="str">'query=ASK { gnisf:1414314 gnis:county ?c }'</span> \
+                        https://#{base_url}/sparql
+          .carousel-slide
+            .hero
+              .hero-copy
+                h2.hero-title See how the record #[span.accent changes over time]
+                p.lede GNIS-LD ships a new release every quarter and provides archive data access. Releases are linked with #[code dct:isVersionOf], so you can pin an analysis to an exact version, or diff two releases to see precisely what changed and when.
+                .hero-actions
+                  a.btn-link(href='/docs#lineage') Learn how versioning works
+              .hero-visual
+                .version-card
+                  .version-track(aria-hidden='true')
+                    .version-stop
+                      span.version-dot
+                      span.version-label 250101
+                    .version-stop
+                      span.version-dot.changed
+                      span.version-label 250401
+                    .version-stop
+                      span.version-dot
+                      span.version-label 250701
+                    .version-gap ⋯
+                    .version-stop
+                      span.version-dot.current
+                      span.version-label 260701
+                  .version-diff
+                    .diff-head gnisf:1414314 · gnis:officialName
+                    .diff-row.del
+                      span.diff-release 250101
+                      span.diff-val "Denali"
+                    .diff-row.add
+                      span.diff-release 250401
+                      span.diff-val "Mount McKinley"
+                  p.version-caption Every release is archived and queryable. Compare any two.
+      button.carousel-arrow.next(type='button' aria-label='Next slide') ›
+      .carousel-dots#carousel-dots
+        button.carousel-dot.active(type='button' aria-label='Go to slide 1')
+        button.carousel-dot(type='button' aria-label='Go to slide 2')
+        button.carousel-dot(type='button' aria-label='Go to slide 3')
+        button.carousel-dot(type='button' aria-label='Go to slide 4')
 
+  script.
+    (function() {
+      var ROTATE_MS = 10000;
+      var carousel = document.querySelector('.hero-carousel');
+      var track = document.getElementById('carousel-track');
+      var dots = Array.prototype.slice.call(document.querySelectorAll('.carousel-dot'));
+      var n = document.querySelectorAll('.carousel-slide').length;
+      var index = 0;
+      var timer = null;
+      var paused = false;
+      function go(i) {
+        index = (i + n) % n;
+        track.style.transform = 'translateX(-' + (index * 100) + '%)';
+        dots.forEach(function(d, j) { d.classList.toggle('active', j === index); });
+      }
+      function schedule() {
+        clearInterval(timer);
+        timer = setInterval(function() {
+          if (!paused && !document.hidden) go(index + 1);
+        }, ROTATE_MS);
+      }
+      // a manual jump restarts the 10s clock so the next slide isn't cut short
+      document.querySelector('.carousel-arrow.prev').addEventListener('click', function() { go(index - 1); schedule(); });
+      document.querySelector('.carousel-arrow.next').addEventListener('click', function() { go(index + 1); schedule(); });
+      dots.forEach(function(d, j) { d.addEventListener('click', function() { go(j); schedule(); }); });
+      // don't rotate away while the reader is engaging with the slide
+      carousel.addEventListener('mouseenter', function() { paused = true; });
+      carousel.addEventListener('mouseleave', function() { paused = false; });
+      carousel.addEventListener('focusin', function() { paused = true; });
+      carousel.addEventListener('focusout', function() { paused = false; });
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        schedule();
+      }
+    })();
+
+  //- Feature strip: AI & ML
+  section.machine-band
+    .machine-inner
+      h2.machine-title Built for machines
+      p.machine-lede GNIS-LD reflects a federally maintained government dataset that's authoritative, public domain, and machine-readable end to end.
+      .machine-grid
+        .machine-card
+          h3 Ground AI systems
+          p Dereferenceable URIs and a live SPARQL endpoint give retrieval and fact-checking pipelines an authoritative source for U.S. place facts.
+        .machine-card
+          h3 Train on public-domain data
+          p Roughly fourteen million triples of federal geographic data with clean provenance and no licensing restrictions — ready for entity linking, geocoding, and evaluation datasets.
+        .machine-card
+          h3 Bulk or live access
+          p Grab a complete release from the #[a(href='/downloads') downloads page], or query the live graph in the #[a(href='/explore') explore workspace] — the same records either way, with stable identifiers throughout.
+
+  //- Hero 4: crosswalks to other knowledge graphs
+  section.hero-band.alt
+    .hero.reverse
+      .hero-visual
+        .crosswalk-card
+          .crosswalk-hub
+            span.crosswalk-pill.gnis gnisf:1414314
+          .crosswalk-target-row
+            .crosswalk-join
+              span.crosswalk-arrows ⟷
+              span.crosswalk-prop P590 · GNIS ID
+            span.crosswalk-pill.wd wd:Q130018
+          .crosswalk-target-row
+            .crosswalk-join
+              span.crosswalk-arrows ⟷
+              span.crosswalk-prop owl:sameAs
+            span.crosswalk-pill.wd dbr:Denali
+          .crosswalk-target-row
+            .crosswalk-join
+              span.crosswalk-arrows ⟷
+              span.crosswalk-prop owl:sameAs
+            span.crosswalk-pill.wd geonames:5868589
+          .crosswalk-caption Denali — one identifier, many graphs
+      .hero-copy
+        h2.hero-title Crosswalk across #[span.accent Wikidata, DBpedia, and GeoNames]
+        p.lede GNIS identifiers are first-class citizens of the global knowledge graph: more than two million #[code owl:sameAs] links to Wikidata, DBpedia, and GeoNames ship in every release — harvested from Wikidata's own GNIS crosswalk and aligned against the GeoNames gazetteer — so every feature here connects outward to the rest of the linked-data web.
+        .hero-actions
+          a.btn-link(href='/docs#crosswalks') Browse the crosswalks
+
+  //- Community: GitHub & Slack
+  section.community-band
+    .community-inner
+      h2.community-title Open source
+      p.community-lede GNIS-LD is open source and openly maintained.
+      .community-grid
+        a.community-card(href='https://github.com/DataONEorg/gnis-ld.org' target='_blank' rel='noopener')
+          .community-card-title GitHub
+          p.community-teaser Browse the source, file issues, or contribute to the development process.
+          span.community-more github.com/DataONEorg
+        a.community-card(href='https://slack.nceas.ucsb.edu/' target='_blank' rel='noopener')
+          .community-card-title NCEAS Slack
+          p.community-teaser Chat with the maintainers and other users. Ask questions, share what you're building, or get help with a query.
+          span.community-more slack.nceas.ucsb.edu

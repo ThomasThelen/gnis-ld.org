@@ -1,0 +1,62 @@
+@import "vars.less";
+
+// Two-column docs layout: floating table of contents on the left, the
+// standard page column on the right.
+.docs-layout {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  max-width: 1180px;
+  margin: 0 auto;
+
+  .page-content {
+    margin: 0; // the grid positions the column; keep page-content's padding
+  }
+}
+
+.docs-toc {
+  position: sticky;
+  top: 4rem;
+  align-self: start;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  padding: 3.2rem 0 2rem 1.5rem;
+
+  .toc-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: @muted;
+    margin-bottom: 0.6rem;
+    padding-left: 0.75rem;
+  }
+
+  .toc-link {
+    display: block;
+    font-size: 0.85rem;
+    color: @muted;
+    padding: 0.32rem 0.75rem;
+    border-left: 2px solid @border;
+
+    &:hover {
+      color: @primary;
+      text-decoration: none;
+    }
+
+    &.active {
+      color: @primary;
+      font-weight: 600;
+      border-left-color: @primary;
+    }
+  }
+}
+
+@media (max-width: 1000px) {
+  .docs-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .docs-toc {
+    display: none;
+  }
+}

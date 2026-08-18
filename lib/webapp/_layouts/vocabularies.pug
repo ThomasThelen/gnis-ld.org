@@ -1,0 +1,30 @@
+extends layout.pug
+
+block content-header
+  //- shares the vocab panel styles with the Data page
+  link(rel='stylesheet', type='text/css', href='/style/dataset.css')
+
+block content-block
+  .page-content
+    h1 Vocabularies
+    p The dataset is described with common, mostly W3C-standard ontologies such as #[a(href='https://www.opengis.net/ont/geosparql' target='_blank') GeoSPARQL]. Two vocabularies were developed specifically for this project: #[code usgs] and #[code gnis]. Both are used together to describe every feature in the dataset.
+
+    .vocab-grid
+      .vocab-panel
+        h2 usgs
+        code.ns http://#{base_url}/lod/usgs/ontology/
+        p Defines the kinds of features that appear in the gazetteer. It contains class definitions for feature types — streams, plains, ridges, summits, dams, and dozens more — so every record can say precisely what it is.
+        .vocab-actions
+          a.btn-primary(href='/resource/ontologies/usgs.ttl' target='_blank') Download Turtle
+          a.btn-link(href='/images/usgs.svg' target='_blank') View diagram
+      .vocab-panel
+        h2 gnis
+        code.ns http://#{base_url}/lod/gnis/ontology/
+        p Defines the properties used to describe features: official and historical names, counties, citations, and descriptions. It also extends properties of generic features and adds terms for talking about counties.
+        .vocab-actions
+          a.btn-primary(href='/resource/ontologies/gnis.ttl' target='_blank') Download Turtle
+          a.btn-link(href='/images/gnis.svg' target='_blank') View diagram
+
+    h2 How they fit together
+    p A typical feature is typed by the #[code usgs] ontology and described by the #[code gnis] ontology. For example, #[a(href='/lod/gnis/feature/1414314') gnisf:1414314] is a #[code usgs:Summit] whose #[code gnis:officialName] is “Mount McKinley”, with “Denali” among its #[code gnis:alternativeName]s and a geometry expressed through GeoSPARQL.
+    p The OWL files defining the two ontologies can be downloaded above, or explored visually through the diagrams. The property-by-property reference lives in the #[a(href='/docs#properties') documentation].

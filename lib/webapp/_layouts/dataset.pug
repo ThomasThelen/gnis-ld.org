@@ -1,0 +1,24 @@
+extends layout.pug
+
+block content-header
+  link(rel='stylesheet', type='text/css', href='/style/dataset.css')
+
+block content-block
+  .page-content
+    h1 Data
+    p The GNIS-LD dataset is a linked-data version of the USGS Geographic Names Information System — roughly fourteen million triples describing every federally recognized place name in the United States. It is public domain, machine-readable, and available in bulk or live.
+
+    h2 Download
+    p A complete export of the database is available from the data endpoint. The exported file is approximately 5.4 GB of RDF and can be loaded into any triple store. Releases are published quarterly, and historic dumps are archived.
+    .vocab-actions
+      a.btn-primary(href='/data' target='_blank') Download the archive
+      a.btn-link(href='/downloads') All releases
+      a.btn-link(href='/explore') Query it live instead
+
+    h2 Documentation
+    p The #[a(href='/docs') documentation] covers the URI structure, identifier stability and versioning, and the dataset's VoID/DCAT metadata. The #[a(href='/integrations') integrations guide] covers every way to query and consume the data through federated SPARQL, raw HTTP, dereferencing identifiers, and bulk loading.
+
+    h2#vocabularies Vocabularies
+    p Two purpose-built vocabularies, #[code usgs] and #[code gnis], describe every feature in the dataset alongside W3C standards like GeoSPARQL.
+    .vocab-actions
+      a.btn-primary(href='/vocabularies') Browse the vocabularies

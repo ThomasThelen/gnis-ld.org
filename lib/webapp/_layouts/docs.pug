@@ -1,0 +1,351 @@
+extends layout.pug
+
+block content-header
+  link(rel='stylesheet', type='text/css', href='/style/docs.css')
+
+block content-block
+  .docs-layout
+    aside.docs-toc
+      nav(aria-label='On this page')
+        .toc-title On this page
+        a.toc-link(href='#uris') URI structure
+        a.toc-link(href='#properties') Feature properties
+        a.toc-link(href='#howto-link') Linking an entity
+        a.toc-link(href='#crosswalks') Crosswalks
+        a.toc-link(href='#versioning') Stability &amp; versioning
+        a.toc-link(href='#sources') Source datasets
+        a.toc-link(href='#metadata') VoID &amp; DCAT
+        a.toc-link(href='#lineage') Lineage
+        a.toc-link(href='#faq') FAQ
+    .page-content
+      h1 Documentation
+      p How GNIS-LD identifiers are structured, how the dataset is versioned, and how to discover and query it with standard dataset metadata. For hands-on query recipes, see the #[a(href='/integrations') integrations guide].
+
+      h2#uris URI structure
+      p Everything in GNIS-LD lives under #[code http://#{base_url}/lod/]. URIs are identifiers first and URLs second: they never change, and every one of them dereferences to the record it names.
+      table.doc-table
+        thead
+          tr
+            th URI pattern
+            th Identifies
+        tbody
+          tr
+            td: code /lod/gnis/feature/{id}
+            td A named feature. #[code {id}] is the official USGS GNIS Feature ID — for example #[a(href='/lod/gnis/feature/1414314') feature/1414314] is Denali, and stayed #[code 1414314] when the official name changed to Mount McKinley in 2025.
+          tr
+            td: code /lod/gnis/feature-alias/{State.Name}
+            td A human-readable alias for states and counties, such as #[code Alaska.Juneau].
+          tr
+            td: code /lod/gnis/ontology/{term}
+            td A term in the #[code gnis] vocabulary (properties such as #[code officialName], #[code county], #[code description]).
+          tr
+            td: code /lod/usgs/ontology/{term}
+            td A term in the #[code usgs] vocabulary (feature classes such as #[code Summit], #[code Stream], #[code Dam]).
+          tr
+            td: code /lod/geometry/{type}/{id}
+            td A geometry, where #[code {type}] is one of #[code point], #[code multipoint], #[code linestring], #[code multilinestring], #[code polygon], #[code multipolygon].
+      p Additional namespaces under #[code /lod/] (#[code nhd], #[code cegis]) are reserved for sibling USGS datasets that share this infrastructure.
+      p Every #[code /lod/] URI supports content negotiation — request HTML in a browser, or RDF from a client:
+      .code-card
+        pre.
+          <span class="cm">$</span> curl -H <span class="str">'Accept: text/turtle'</span> https://#{base_url}/lod/gnis/feature/1414314
+
+      h2#properties What a feature record contains
+      p Every feature carries a common set of properties — think of them as the columns you can rely on when writing queries. Values marked as entities are themselves dereferenceable URIs.
+      table.doc-table
+        thead
+          tr
+            th Property
+            th Value
+            th What it holds
+        tbody
+          tr
+            td: code rdf:type
+            td entity
+            td One or more feature classes from the #[code usgs] vocabulary (#[code usgs:Summit], #[code usgs:Stream], …).
+          tr
+            td: code gnis:officialName
+            td string
+            td The federally recognized name of the feature. #[code rdfs:label] carries the name too, so generic tooling works.
+          tr
+            td: code gnis:alternativeName
+            td string
+            td Variant names and historical spellings, when they exist.
+          tr
+            td: code gnis:description
+            td string
+            td A prose description of the feature.
+          tr
+            td: code gnis:history
+            td string
+            td Historical notes — origin of the name, changes over time.
+          tr
+            td: code gnis:citation
+            td string
+            td The source citation for the record.
+          tr
+            td: code gnis:featureId
+            td string
+            td The numeric USGS GNIS Feature ID (the same id that appears in the URI).
+          tr
+            td: code gnis:county
+            td entity
+            td The county the feature falls in, as a #[code feature-alias] URI (features that span counties have several).
+          tr
+            td: code gnis:state
+            td entity
+            td The state, an entity carrying #[code gnis:stateName], #[code gnis:stateCode], and #[code gnis:stateId].
+          tr
+            td: code gnis:mapName
+            td string
+            td The USGS topographic map the feature appears on.
+          tr
+            td: code gnis:dateFeatureCreated,
+              br
+              code gnis:dateFeatureEdited,
+              br
+              code gnis:dateNameCreated
+            td date
+            td When the record was created and last edited upstream, and when the name was established.
+          tr
+            td: code geo:hasGeometry
+            td entity
+            td The feature's geometry under #[code /lod/geometry/], queryable with GeoSPARQL (WKT via #[code geo:asWKT]).
+          tr
+            td: code owl:sameAs,
+              br
+              code skos:closeMatch
+            td entity
+            td Crosswalk links to Wikidata, DBpedia, GeoNames, Who's on First, and Google Data Commons (#[code owl:sameAs]), plus Library of Congress and Getty TGN authorities (#[code skos:closeMatch]) — harvested each release from Wikidata's GNIS crosswalk, a name-and-distance alignment against the GeoNames gazetteer, and the Census GEOID join.
+          tr
+            td: code gnis:censusGeoid
+            td string
+            td The U.S. Census Bureau GEOID, joined from the Census national gazetteer (whose ANSI code #[em is] the GNIS Feature ID). Counties and populated places carry it — the join key for Census statistical products.
+      p Not every feature has every property — descriptions and histories in particular are present only where USGS recorded them. The #[a(href='/explore') explore workspace] is the quickest way to see a real record: run the Denali example and every property above appears in the result.
+
+      h2#howto-link How-to: link an entity into your dataset
+      p The core workflow GNIS-LD exists for: take a place mentioned in your data, attach its stable USGS identifier, and get authoritative geographic context back for free.
+
+      h3 1. Find the identifier
+      p The quickest route is the #[a(href='/search') search page] — type a name, filter if needed, and copy the URI straight off the result card. Doing it in bulk? Run an exact-match query, once per name:
+      .code-card
+        .code-card-head
+          span.dot
+          span.dot
+          span.dot
+          span.code-card-name resolve.rq
+        pre.
+          <span class="kw">PREFIX</span> rdf: &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt;
+          <span class="kw">PREFIX</span> rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+          <span class="kw">PREFIX</span> gnis: &lt;http://#{base_url}/lod/gnis/ontology/&gt;
+
+          <span class="kw">SELECT</span> ?feature ?type <span class="kw">WHERE</span> {
+            ?feature (gnis:officialName|rdfs:label) ?label .
+            <span class="kw">FILTER</span>(LCASE(STR(?label)) = <span class="str">"denali"</span>)
+            ?feature rdf:type ?type .
+          }
+      p Ambiguous names are normal — many features share a name. Disambiguate with the feature type (#[code rdf:type]) and the state (#[code gnis:state]) before committing to a URI.
+
+      h3 2. Store the URI in your data
+      p The URI is the link — store it whole, never just the numeric id. In RDF, point at the feature with a spatial property:
+      .code-card
+        .code-card-head
+          span.dot
+          span.dot
+          span.dot
+          span.code-card-name your-data.ttl
+        pre.
+          @prefix dct: &lt;http://purl.org/dc/terms/&gt; .
+
+          &lt;https://example.org/observation/42&gt;
+              dct:spatial &lt;http://#{base_url}/lod/gnis/feature/1414314&gt; .
+      p Not using RDF? A plain #[code gnis_uri] column in a table or a string field in JSON works just as well — the URI is self-contained and permanent either way.
+
+      h3 3. Get value back
+      p Once the link exists, the federal record is one hop away. Dereference the URI for the authoritative name and full record, or join your data against the live endpoint in a single federated query:
+      .code-card
+        .code-card-head
+          span.dot
+          span.dot
+          span.dot
+          span.code-card-name enrich.rq
+        pre.
+          <span class="kw">PREFIX</span> dct: &lt;http://purl.org/dc/terms/&gt;
+          <span class="kw">PREFIX</span> gnis: &lt;http://#{base_url}/lod/gnis/ontology/&gt;
+
+          <span class="kw">SELECT</span> ?obs ?name ?county <span class="kw">WHERE</span> {
+            ?obs dct:spatial ?feature .
+            <span class="kw">SERVICE</span> &lt;https://#{base_url}/sparql&gt; {
+              ?feature gnis:officialName ?name ;
+                       gnis:county ?county .
+            }
+          }
+      p Your dataset stays where it is; names, counties, and the rest of the #[a(href='#properties') feature record] flow in from the authoritative source at query time. More patterns in the #[a(href='/integrations') integrations guide].
+
+      h2#crosswalks Crosswalks to other systems
+      p Every release ships over two million crosswalk links, so a GNIS identifier is also an address into the rest of the linked-data web. The links are derived automatically each release — from Wikidata's own GNIS crosswalk (P590), GNIS-LD's own name-and-distance alignment against the GeoNames gazetteer, and the Census national gazetteer, whose ANSI code #[em is] the GNIS Feature ID — and they ship inside the release dumps, versioned and retained like every other statement. The GeoNames alignment is generated entirely by GNIS-LD and scored against Wikidata's curated pairs as a QA step on every build.
+      table.doc-table
+        thead
+          tr
+            th Target
+            th Property
+            th Derived from
+            th Links
+        tbody
+          tr
+            td GeoNames
+            td: code owl:sameAs
+            td Name-and-distance alignment, QA-scored against Wikidata's curated pairs (96.7% agreement)
+            td ≈ 920,000
+          tr
+            td Wikidata
+            td: code owl:sameAs
+            td P590 backlinks
+            td ≈ 880,000
+          tr
+            td DBpedia
+            td: code owl:sameAs
+            td English Wikipedia sitelinks
+            td ≈ 165,000
+          tr
+            td Who's on First
+            td: code owl:sameAs
+            td Wikidata P6766
+            td ≈ 90,000
+          tr
+            td Library of Congress
+            td: code skos:closeMatch
+            td Wikidata P244
+            td ≈ 45,000
+          tr
+            td Getty TGN
+            td: code skos:closeMatch
+            td Wikidata P1667
+            td ≈ 36,000
+          tr
+            td Google Data Commons
+            td: code owl:sameAs
+            td Census GEOID (#[code geoId/&lt;FIPS&gt;])
+            td ≈ 36,000
+          tr
+            td Census Bureau
+            td: code gnis:censusGeoid
+            td National gazetteer ANSI join
+            td ≈ 36,000
+      p Following the links outward is one query — and so is arriving from outside, if all you have is another system's identifier:
+      .code-card
+        .code-card-head
+          span.dot
+          span.dot
+          span.dot
+          span.code-card-name crosswalk.rq
+        pre.
+          <span class="kw">PREFIX</span> owl: &lt;http://www.w3.org/2002/07/owl#&gt;
+          <span class="kw">PREFIX</span> skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+          <span class="kw">PREFIX</span> gnisf: &lt;http://#{base_url}/lod/gnis/feature/&gt;
+          <span class="kw">PREFIX</span> wd: &lt;http://www.wikidata.org/entity/&gt;
+
+          <span class="cm"># everywhere else a feature is known</span>
+          <span class="kw">SELECT</span> ?elsewhere <span class="kw">WHERE</span> { gnisf:1414314 (owl:sameAs|skos:closeMatch) ?elsewhere }
+
+          <span class="cm"># from a Wikidata id back to the GNIS feature</span>
+          <span class="kw">SELECT</span> ?feature <span class="kw">WHERE</span> { ?feature owl:sameAs wd:Q130018 }
+      p Counts are approximate and move a little with each release as the upstream crosswalks grow; the exact links for any feature are in its record — #[a(href='/lod/gnis/feature/1414314') dereference one] and look.
+
+      h2#versioning Identifier stability &amp; versioning
+      p GNIS-LD makes two promises about change over time:
+      p #[strong Identifiers are permanent.] Feature URIs are built on USGS GNIS Feature IDs, which are never reused or reassigned. A URI minted for a feature keeps identifying that feature forever — if USGS stops shipping a record, its last-known triples are carried forward into every later release, typed #[code usgs:HistoricalFeature] with #[code gnis:lastAppearedIn] pointing at the release that last contained it natively. The retained records are also published per release as a #[em historical companion] dump on the #[a(href='/downloads') downloads page]. This is what makes GNIS-LD URIs safe to store in your own systems as foreign keys.
+      p #[strong The graph tracks upstream GNIS.] The live endpoint always serves the current release, loaded from the USGS source data. A release is identified by the dataset-level metadata described below, and the complete state of the current release can always be exported from the #[a(href='/data') data] endpoint.
+
+      h2#sources Source datasets
+      p GNIS-LD is derived from federal source data. These are the places to go to understand where the records come from, how they are maintained, and how the conversion works:
+      .list
+        .item
+          .title
+            a(href='https://www.usgs.gov/tools/geographic-names-information-system-gnis' target='_blank') Geographic Names Information System (GNIS)
+          .info The primary source — the federal and national standard for geographic nomenclature, developed by USGS.
+        .item
+          .title
+            a(href='https://www.usgs.gov/us-board-on-geographic-names' target='_blank') U.S. Board on Geographic Names
+          .info The federal body that establishes and maintains uniform geographic name usage; GNIS is its official repository.
+        .item
+          .title
+            a(href='https://www.usgs.gov/us-board-on-geographic-names/download-gnis-data' target='_blank') GNIS data downloads
+          .info The raw files GNIS-LD is built from, published by USGS.
+        .item
+          .title
+            a(href='https://github.com/DataONEorg/usgs-triplifier' target='_blank') usgs-triplifier
+          .info The open-source pipeline that converts the USGS files into the RDF served here.
+      p The reserved #[code nhd] and #[code cegis] namespaces correspond to the #[a(href='https://www.usgs.gov/national-hydrography/national-hydrography-dataset' target='_blank') National Hydrography Dataset] and USGS #[a(href='https://www.usgs.gov/centers/cegis' target='_blank') CEGIS] respectively.
+
+      h2#metadata Dataset metadata (VoID &amp; DCAT)
+      p The dataset describes itself with a machine-readable #[a(href='http://rdfs.org/ns/void#' target='_blank') VoID] and #[a(href='https://www.w3.org/TR/vocab-dcat-2/' target='_blank') DCAT] document, available at #[a(href='/resource/metadata/void.ttl') /resource/metadata/void.ttl] (also reachable at the VoID well-known location, #[code /.well-known/void]). It records the SPARQL endpoint, URI space, vocabularies, triple count, license, and the bulk distribution — everything a client needs to discover the dataset without human help:
+      .code-card
+        pre.
+          <span class="cm">$</span> curl https://#{base_url}/.well-known/void
+
+      h2#lineage Querying across lineage
+      p The abstract dataset is identified as #[code &lt;http://#{base_url}/lod/gnis&gt;]. Dated release records attach to it with #[code dct:isVersionOf], so lineage questions are ordinary SPARQL over the metadata — list the releases, find what a release was derived from, or locate the distribution of a specific version:
+      .code-card
+        .code-card-head
+          span.dot
+          span.dot
+          span.dot
+          span.code-card-name lineage.rq
+        pre.
+          <span class="kw">PREFIX</span> dct: &lt;http://purl.org/dc/terms/&gt;
+          <span class="kw">PREFIX</span> dcat: &lt;http://www.w3.org/ns/dcat#&gt;
+
+          <span class="kw">SELECT</span> ?release ?issued ?distribution <span class="kw">WHERE</span> {
+            ?release dct:isVersionOf &lt;http://#{base_url}/lod/gnis&gt; ;
+                     dct:issued ?issued .
+            <span class="kw">OPTIONAL</span> { ?release dcat:distribution ?distribution . }
+          }
+          <span class="kw">ORDER BY</span> <span class="kw">DESC</span>(?issued)
+      p The current description records the live release; as dated releases are published, their records follow this pattern, and a client that resolves the VoID document can walk the whole lineage without any GNIS-LD-specific knowledge.
+
+      h2#faq Frequently asked questions
+      .faq
+        details.faq-item
+          summary How long are my URIs valid for?
+          .faq-body
+            p Forever. Feature URIs are built on USGS GNIS Feature IDs, which are never reused or reassigned. If a feature is dropped upstream, its last-known record is retained — typed #[code usgs:HistoricalFeature], with #[code gnis:lastAppearedIn] linking to the release it last appeared in — and the URI keeps resolving. URIs you store today stay valid across every future release.
+        details.faq-item
+          summary How do I query across datasets?
+          .faq-body
+            p Use SPARQL federation: add a #[code SERVICE &lt;https://#{base_url}/sparql&gt;] clause to a query running in your own store, and your data joins with GNIS-LD at query time — no imports, no copies. The #[a(href='/integrations') integrations guide] shows the pattern, and the #[a(href='#howto-link') how-to above] walks through enriching linked records.
+        details.faq-item
+          summary How often is the data updated?
+          .faq-body
+            p Quarterly, tracking the USGS GNIS domestic names releases. The live endpoint always serves the current release, and previous releases are archived on the #[a(href='/downloads') downloads page]. Identifiers never change between releases.
+        details.faq-item
+          summary Can I use the data commercially?
+          .faq-body
+            p Yes. GNIS is US federal government data in the public domain — there are no licensing restrictions on use, redistribution, or commercial products. Citing GNIS-LD and the USGS as the source is appreciated but not required.
+        details.faq-item
+          summary Where did the elevation data go?
+          .faq-body
+            p The elevations GNIS carried were 3DEP-derived values that USGS shipped in the GNIS dumps through 2025; USGS no longer distributes them, so they have been removed from current releases (the #[code gnis:elevation] property remains in the ontology, annotated accordingly, for data loaded from older dumps). For authoritative elevations, query the USGS National Map elevation services directly using the coordinates from a feature's geometry.
+        details.faq-item
+          summary I found an error in the data — where do I report it?
+          .faq-body
+            p It depends on the error. Problems with the GNIS-LD service or the RDF conversion belong on our #[a(href='https://github.com/DataONEorg/gnis-ld.org/issues' target='_blank') GitHub issue tracker]. Errors in the underlying names or records come from the source data — those go to the #[a(href='https://www.usgs.gov/us-board-on-geographic-names' target='_blank') U.S. Board on Geographic Names], and fixes flow into GNIS-LD with the next quarterly release.
+
+  script.
+    (function() {
+      var links = Array.prototype.slice.call(document.querySelectorAll('.toc-link'));
+      var sections = links.map(function(l) { return document.getElementById(l.getAttribute('href').slice(1)); });
+      function update() {
+        var y = window.scrollY + 100;
+        var active = 0;
+        sections.forEach(function(s, i) { if (s && s.offsetTop <= y) active = i; });
+        // at the very bottom the last section wins even if its heading
+        // can't reach the top of the viewport
+        if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 5) {
+          active = links.length - 1;
+        }
+        links.forEach(function(l, i) { l.classList.toggle('active', i === active); });
+      }
+      window.addEventListener('scroll', update, {passive: true});
+      update();
+    })();

@@ -1,5 +1,9 @@
 mixin footer
-  .footer
-    .copyright © #{new Date().getFullYear()}
-    .name GNIS-LD 
-    .right
+  footer.site-footer
+    .site-footer-inner
+      .footer-brand GNIS-LD
+      .footer-copy © #{new Date().getFullYear()} · GNIS-LD
+      .footer-links
+        a(href='/integrations') SPARQL
+        a(href='https://github.com/DataONEorg/gnis-ld.org' target='_blank') GitHub
+        a(href='https://slack.nceas.ucsb.edu/' target='_blank') Slack

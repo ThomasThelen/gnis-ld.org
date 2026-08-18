@@ -1,0 +1,45 @@
+extends layout.pug
+
+block content-block
+  .page-content
+    h1 Integrations
+    p GNIS-LD is built to be queried by other systems, not just browsed. Every record is machine-readable, every identifier dereferences, and the SPARQL endpoint is open — so there are several ways to pull authoritative USGS place data into your own stack.
+
+    h2 Federate with SPARQL
+    p If you already run a SPARQL-capable store, you don't need to import anything. Add a #[code SERVICE] clause and your engine joins its own data with GNIS-LD at query time — results always reflect the current dataset:
+    .code-card
+      .code-card-head
+        span.dot
+        span.dot
+        span.dot
+        span.code-card-name federated.rq
+      pre.
+        <span class="kw">SELECT</span> ?official ?description <span class="kw">WHERE</span> {
+          <span class="kw">SERVICE</span> <span class="str">&lt;https://#{base_url}/sparql&gt;</span> {
+            ?peak gnis:alternativeName <span class="str">"Denali"@en</span> ;
+                  gnis:officialName ?official ;
+                  gnis:description ?description .
+          }
+        }
+        <span class="cm"># "Mount McKinley" — "Elevation 20,310 ft.; the highest point in North America"</span>
+    p This is the pattern to reach for when verifying facts against the federal record: keep your data where it is, and let the query bring the authoritative values in.
+
+    h2 Query over HTTP
+    p The endpoint speaks standard SPARQL over HTTP, so any HTTP client works. POST a query and choose your result format with the #[code Accept] header:
+    .code-card
+      pre.
+        <span class="cm">$</span> curl -d <span class="str">'query=SELECT * WHERE { ?s ?p ?o } LIMIT 5'</span> \
+            -H <span class="str">'Accept: application/sparql-results+json'</span> \
+            https://#{base_url}/sparql
+    p Prefer a friendlier starting point? The #[a(href='/explore') explore workspace] has runnable examples and visualizations, and the #[a(href='/search') search page] builds SPARQL for you.
+
+    h2 Dereference identifiers
+    p Every feature URI is a working URL. Request it with an RDF media type and you get the record itself, ready for your parser:
+    .code-card
+      pre.
+        <span class="cm">$</span> curl -H <span class="str">'Accept: text/turtle'</span> \
+            https://#{base_url}/lod/gnis/feature/1414314
+    p This makes GNIS identifiers safe to store in your own database: they stay resolvable, citable, and self-describing.
+
+    h2 Bulk download
+    p Need everything locally? The complete database — roughly fourteen million triples — can be exported from the #[a(href='/data') data] endpoint and loaded into your own triple store.
