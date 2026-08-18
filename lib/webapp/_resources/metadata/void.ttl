@@ -1,0 +1,29 @@
+@prefix void: <http://rdfs.org/ns/void#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+# Dataset description for GNIS-LD.
+# The canonical, current release is described here; dated release records
+# use dct:isVersionOf to point back at the abstract dataset URI below.
+
+<http://gnis-ld.org/lod/gnis> a void:Dataset , dcat:Dataset ;
+    dct:title "GNIS-LD"@en ;
+    dct:description "Linked Data version of the USGS Geographic Names Information System (GNIS), the federal and national standard for geographic nomenclature."@en ;
+    dct:publisher <https://www.dataone.org/> ;
+    dct:source <https://www.usgs.gov/us-board-on-geographic-names> ;
+    dct:license <http://creativecommons.org/publicdomain/mark/1.0/> ;
+    dcat:landingPage <https://gnis-ld.org/dataset> ;
+    void:sparqlEndpoint <https://gnis-ld.org/sparql> ;
+    void:uriSpace "http://gnis-ld.org/lod/" ;
+    void:vocabulary <http://gnis-ld.org/lod/usgs/ontology/> ,
+                    <http://gnis-ld.org/lod/gnis/ontology/> ,
+                    <http://www.opengis.net/ont/geosparql#> ;
+    void:triples 35000000 ;
+    void:dataDump <https://gnis-ld.org/data> ;
+    dcat:distribution [
+        a dcat:Distribution ;
+        dct:title "Full database export"@en ;
+        dcat:accessURL <https://gnis-ld.org/data> ;
+        dcat:mediaType "application/n-triples" ;
+    ] .

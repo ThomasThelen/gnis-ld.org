@@ -1,0 +1,22 @@
+extends layout.pug
+
+block content-block
+  .page-content
+    h1 Geometry
+    p This URI identifies a geometry in GNIS-LD. Geometries are served in machine-readable formats through content negotiation — request the same URL with the format you need:
+    table.doc-table
+      thead
+        tr
+          th Format
+          th Accept header
+      tbody
+        tr
+          td Well-Known Text (WKT)
+          td: code text/plain
+        tr
+          td GeoJSON
+          td: code application/json
+    .code-card
+      pre.
+        <span class="cm">$</span> curl -H <span class="str">'Accept: text/plain'</span> &lt;this URL&gt;
+    p See the #[a(href='/docs#uris') URI documentation] for how geometry URIs relate to features.
