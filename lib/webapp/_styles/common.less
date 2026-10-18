@@ -16,8 +16,6 @@ body {
   color: @ink;
   background-color: @surface;
 
-  // Sticky footer: short pages (e.g. an empty search) still pin
-  // the footer to the bottom of the viewport.
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -52,7 +50,7 @@ code {
   padding: 0.1em 0.35em;
 }
 
-// ---------- Buttons (shared) ----------
+// Shared buttons
 .btn-primary {
   display: inline-block;
   padding: 0.65rem 1.25rem;
@@ -76,7 +74,7 @@ code {
   }
 }
 
-// ---------- Page shells: wide workspace pages ----------
+// Page shells
 .queries-page h1,
 .search-page h1 {
   color: @primary;
@@ -91,7 +89,7 @@ code {
   margin: 0 0 1.5rem;
 }
 
-// ---------- Header ----------
+// Header
 .site-header {
   position: sticky;
   top: 0;
@@ -188,7 +186,7 @@ code {
   }
 }
 
-// ---------- 404 ----------
+// 404
 .page-content.notfound {
   text-align: center;
   padding-top: 5rem;
@@ -220,7 +218,7 @@ code {
   }
 }
 
-// ---------- Standard page container (queries, about) ----------
+// Standard page container
 .page-content {
   max-width: 900px;
   margin: 0 auto;
@@ -284,7 +282,7 @@ code {
   }
 }
 
-// ---------- FAQ accordion ----------
+// FAQ accordion
 .faq {
   display: grid;
   gap: 0.6rem;
@@ -365,7 +363,7 @@ code {
   }
 }
 
-// ---------- Code cards (homepage heroes) ----------
+// Code cards
 .code-card {
   background-color: @code-bg;
   color: @code-ink;
@@ -419,7 +417,7 @@ code {
   margin: 1.25rem 0 2rem;
 }
 
-// ---------- Footer ----------
+// Footer
 .site-footer {
   background-color: @code-bg;
   color: #b8c7d6;

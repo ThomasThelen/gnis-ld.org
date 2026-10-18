@@ -139,12 +139,15 @@ export function termLabel(h_term: SparqlTerm): string {
  *
  * @param s_query - Complete SPARQL query text.
  * @param s_accept - Accept header; defaults to SPARQL results JSON.
+ * @param b_infer - False to query explicit statements only, without the
+ * types the repository's ruleset infers from the loaded ontologies.
  * @returns Promise resolving to the response and its body; rejects with a
  * readable message on a non-2xx response.
  */
 export function postSparql(
 	s_query: string,
-	s_accept?: string
+	s_accept?: string,
+	b_infer: boolean = true
 ): Promise<{ res: Response; body: string }> {
 	return fetch('/sparql', {
 		method: 'POST',
@@ -152,7 +155,7 @@ export function postSparql(
 			'Accept': s_accept || 'application/sparql-results+json',
 			'Content-Type': 'application/x-www-form-urlencoded',
 		},
-		body: 'query=' + encodeURIComponent(s_query),
+		body: 'query=' + encodeURIComponent(s_query) + (b_infer ? '' : '&infer=false'),
 	})
 	.then((d_res) => d_res.text().then((s_body) => ({res: d_res, body: s_body})))
 	.then(({res, body}) => {

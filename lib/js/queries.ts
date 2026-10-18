@@ -56,7 +56,6 @@ let sim: Sim | null = null;   // running graph simulation, stopped when the grap
 let runSeq = 0;   // request token
 let blobUrl: string | null = null;
 
-// ---------- small helpers ----------
 
 /**
  * Creates an SVG element.
@@ -207,7 +206,7 @@ function aggregate(json: SelectResults): Aggregate | null {
 	}
 	if (!catVar) return null;
 
-	const counts = new Map<string, Set<string>>(); // category label -> Set of subjects
+	const counts = new Map<string, Set<string>>(); // Maps the category label to the set of subjects
 	for (const r of rows) {
 		const cterm = r[catVar];
 		const sterm = r[subjVar];
@@ -401,7 +400,7 @@ interface GNode {
 interface GEdge { s: GNode; t: GNode; label: string }
 
 /**
- * Builds a node/edge graph from a result set. Each row contributes its
+ * Builds a node/edge graph from a result set. Each row uses its
  * first URI as the subject, connected to the row's other bound terms.
  *
  * @param json - SELECT result set.
@@ -535,7 +534,6 @@ function renderGraph() {
 		return {x: p.x, y: p.y};
 	};
 
-	// svg user units -> viewport (pre-transform) coordinates
 	const toViewport = (p: {x: number; y: number}) => ({x: (p.x - tx) / scale, y: (p.y - ty) / scale});
 
 	const nodeDots = graph.nodes.map((node) => {
@@ -615,14 +613,14 @@ function renderGraph() {
 		window.addEventListener('pointercancel', up);
 	});
 
-	// force simulation — restartable, so drags after cool-down still animate
+	// force simulation
 	const mySim: Sim = {alpha: 1, stop: false, running: false};
 	sim = mySim;
 	const REST = 95;
 
 	const tick = () => {
 		if (mySim.stop) { mySim.running = false; return; }
-		// repulsion
+		// repulsion between nodes
 		for (let i = 0; i < graph.nodes.length; i++) {
 			const a = graph.nodes[i];
 			for (let j = i + 1; j < graph.nodes.length; j++) {
@@ -636,7 +634,7 @@ function renderGraph() {
 				b.vx -= (dx / d) * f; b.vy -= (dy / d) * f;
 			}
 		}
-		// springs
+		// springs between nodes
 		for (const e of graph.edges) {
 			const dx = e.t.x - e.s.x, dy = e.t.y - e.s.y;
 			const d = Math.sqrt(dx * dx + dy * dy) || 1;

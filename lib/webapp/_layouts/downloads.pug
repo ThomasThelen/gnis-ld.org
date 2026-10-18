@@ -6,11 +6,11 @@ block content-header
 block content-block
   .page-content
     h1 Downloads
-    p Every release of GNIS-LD is available as a complete database export — roughly fourteen million triples of N-Triples you can load into any triple store. The current release is always served live at the SPARQL endpoint and exportable from the #[a(href='/data') data] endpoint.
+    p Each GNIS-LD release is archived and available for download. Each release includes includes triples from the ETL process and the ones generated during inference. The current release is served live at the SPARQL endpoint and exportable from the #[a(href='/data') data] endpoint.
 
     h2 Release cadence
-    p GNIS-LD tracks the USGS GNIS domestic names data on a #[strong quarterly] cadence: each quarter the latest USGS files are converted through the #[a(href='https://github.com/DataONEorg/usgs-triplifier' target='_blank') triplifier pipeline], loaded into the live endpoint, and archived here automatically. Feature identifiers never change between releases — a new quarter adds new features and updates descriptive properties, so links made against any release keep resolving against every later one. Releases are also recorded in the dataset's #[a(href='/docs#metadata') VoID/DCAT metadata], so the archive below is machine-discoverable.
-    p Each release ships in two parts. The main dump is a faithful conversion of exactly what USGS currently publishes. Its #[strong historical companion] carries the last-known records of features USGS has stopped shipping — typed #[code usgs:HistoricalFeature], with #[code gnis:lastAppearedIn] pointing at the release that last contained them — and the live endpoint loads both, which is how feature URIs stay resolvable forever.
+    p GNIS-LD tracks the USGS GNIS domestic names data on a #[strong quarterly] cadence. The USGS updates the GNIS dataset on a quarterly basis; the gnis-each quarter and processed with the #[a(href='https://github.com/DataONEorg/usgs-triplifier' target='_blank') triplifier pipeline], loaded into the live SPARQL endpoint, and archived here. Identifiers are kept the same between updates. Releases are also recorded in the dataset's #[a(href='/docs#metadata') VoID/DCAT metadata], so the archives can be machine-discoverable.
+    p USGS occasionally removes features from their archives; these features can be found in the optional _historical_ archive download which is attached with each release. The historical features have the #[code usgs:HistoricalFeature] class attached to them along with the #[code gnis:lastAppearedIn] property which points to the release that last contained it. Despite being deprecated these features are still served by GNIS-LD for systems that require backwards compatibility.
 
     h2 Release archive
     if releases && releases.length

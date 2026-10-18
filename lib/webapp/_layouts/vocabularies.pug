@@ -7,13 +7,13 @@ block content-header
 block content-block
   .page-content
     h1 Vocabularies
-    p The dataset is described with common, mostly W3C-standard ontologies such as #[a(href='https://www.opengis.net/ont/geosparql' target='_blank') GeoSPARQL]. Two vocabularies were developed specifically for this project: #[code usgs] and #[code gnis]. Both are used together to describe every feature in the dataset.
+    p s GNIS-LD describes the data through two core ontologies: USGS and GNIS. Each of these make use of common, mostly W3C-standard ontologies such as #[a(href='https://www.opengis.net/ont/geosparql', target_='_blank') GeoSPARQL] and _______.
 
     .vocab-grid
       .vocab-panel
         h2 usgs
         code.ns http://#{base_url}/lod/usgs/ontology/
-        p Defines the kinds of features that appear in the gazetteer. It contains class definitions for feature types — streams, plains, ridges, summits, dams, and dozens more — so every record can say precisely what it is.
+        p Defines the kinds of features that appear in the gazetteer. It contains class definitions for feature types: streams, plains, ridges, summits, dams, and dozens more.
         .vocab-actions
           a.btn-primary(href='/resource/ontologies/usgs.ttl' target='_blank') Download Turtle
           a.btn-link(href='/images/usgs.svg' target='_blank') View diagram

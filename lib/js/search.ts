@@ -22,8 +22,6 @@ let lastFacets: Facets | null = null; // facets of the search being paged; Load 
 let inFlight = false;
 const seenFeatures = new Set<string>(); // feature URIs already rendered, to dedup across pages
 
-// ---------- facets ----------
-
 /**
  * Reads the current facet values from the search form.
  *
@@ -107,7 +105,7 @@ ORDER BY ?name ?feature
 LIMIT ${PAGE_SIZE} OFFSET ${off}`;
 }
 
-// ---------- search ----------
+// search
 
 /**
  * Runs a search against the endpoint and renders the results.
@@ -145,7 +143,9 @@ function runSearch(append: boolean): void {
 	status.textContent = 'Searching…';
 	status.classList.remove('error');
 
-	postSparql(query)
+	// Explicit types only: inference would also match the abstract classes
+	// and the state and county unit records
+	postSparql(query, undefined, false)
 	.then(({body}) => {
 		const json = parseSelect(body);
 		offset = nextOffset; // advance only after a successful page
@@ -221,8 +221,6 @@ function renderResults(rows: SparqlBinding[], append: boolean): void {
 	}
 	$('#load-more').hidden = rows.length < PAGE_SIZE;
 }
-
-// ---------- wiring ----------
 
 /**
  * Reflects the number of active filters on the Filters toggle button.

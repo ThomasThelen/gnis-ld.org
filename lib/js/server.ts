@@ -231,6 +231,30 @@ k_app.get('/resource/metadata/void.ttl', (d_req: Request, d_res: Response) => {
 // static routing
 k_app.use('/script', express.static(PD_DIST_JS));
 k_app.use('/style', express.static(path.join(PD_DIST_WEBAPP, '_styles')));
+/**
+ * Sends an ontology's Turtle file. The ETL writes the files into the archive
+ * volume under ontologies/, with this deployment's base IRI, so the website
+ * serves the same vocabulary that is loaded in GraphDB.
+ *
+ * @param s_dataset - 'gnis' or 'usgs'.
+ * @param d_res - Response to write.
+ */
+const send_ontology = (s_dataset: string, d_res: Response): void => {
+	if (!/^(gnis|usgs)$/.test(s_dataset)) {
+		d_res.status(404).end('No such ontology');
+		return;
+	}
+	d_res.type('text/turtle');
+	d_res.sendFile(path.join(PD_ARCHIVES, 'ontologies', `${s_dataset}.ttl`), (e_send) => {
+		if (e_send) d_res.status(404).end('The ETL has not published the ontology yet');
+	});
+};
+
+// ontology downloads (registered before the /resource static mount so it wins)
+k_app.get('/resource/ontologies/:file', (d_req: Request, d_res: Response) => {
+	send_ontology(String(d_req.params.file).replace(/\.ttl$/, ''), d_res);
+});
+
 k_app.use('/resource', express.static(path.join(PD_LIB_WEBAPP, '_resources')));
 k_app.use('/images', express.static(path.join(PD_LIB_WEBAPP, '_images')));
 k_app.use('/robots.txt', express.static(path.join(PD_LIB_WEBAPP, '_resources/robots.txt')));
@@ -412,7 +436,7 @@ k_app.get([
 
 // request for usgs / gnis ontology
 k_app.get('/lod/:dataset/ontology', (d_req: Request, d_res: Response) => {
-	d_res.sendFile(path.join(PD_RESOURCES, 'ontologies', `${d_req.params.dataset}.ttl`));
+	send_ontology(String(d_req.params.dataset), d_res);
 });
 
 /**
