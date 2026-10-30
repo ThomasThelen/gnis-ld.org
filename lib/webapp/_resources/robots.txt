@@ -1,6 +1,5 @@
 User-agent: *
 Disallow: /sparql
-Disallow: /data
 Disallow: /lod/
 Disallow: /geometry/
 Disallow: /archive/

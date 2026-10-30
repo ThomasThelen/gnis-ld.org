@@ -15,7 +15,7 @@ npm run build
 
 ### Docker
 
-Container images are built and published automatically by GitHub Actions (`.github/workflows/docker-publish.yml`) to `ghcr.io/dataoneorg/gnis-ld`. Any merges to `main` update the `latest` tag.
+Container images are built and published automatically by GitHub Actions (`.github/workflows/docker-publish.yml`) to `ghcr.io/dataoneorg/gnis-ld`. The `latest` tag is updated on every merge to `main`.
 
 To build an image locally:
 
@@ -23,7 +23,7 @@ To build an image locally:
 
 ### Differentiating Between Production & Development
 
-The main difference between production and development builds is the base URL. For example, development builds that are deployed on the develop cluster have address `stage.gnis-ld.org` while production builds have `gnis-ld.org`. This value is controlled by the `BASE` environment variable, read in `config.app.js` (the SPARQL endpoint is likewise controlled by `USGS_ENDPOINT_URL`, and the data path by `USGS_DATA_PATH`).
+The main difference between production and development builds is the base URL. For example, development builds that are deployed on the develop cluster have the base URL `stage.gnis-ld.org` while production builds have `gnis-ld.org`. This value is controlled by the `BASE` environment variable, read in `config.app.js` (the SPARQL endpoint is likewise controlled by `USGS_ENDPOINT_URL`, and the data path by `USGS_DATA_PATH`).
 
 ## Running
 

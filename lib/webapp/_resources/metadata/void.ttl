@@ -18,12 +18,4 @@
     void:uriSpace "http://gnis-ld.org/lod/" ;
     void:vocabulary <http://gnis-ld.org/lod/usgs/ontology/> ,
                     <http://gnis-ld.org/lod/gnis/ontology/> ,
-                    <http://www.opengis.net/ont/geosparql#> ;
-    void:triples 35000000 ;
-    void:dataDump <https://gnis-ld.org/data> ;
-    dcat:distribution [
-        a dcat:Distribution ;
-        dct:title "Full database export"@en ;
-        dcat:accessURL <https://gnis-ld.org/data> ;
-        dcat:mediaType "application/n-triples" ;
-    ] .
+                    <http://www.opengis.net/ont/geosparql#> .

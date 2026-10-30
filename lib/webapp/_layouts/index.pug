@@ -197,7 +197,12 @@ block content-block
           p Dereferenceable URIs and a live SPARQL endpoint give retrieval and fact-checking pipelines an authoritative source for U.S. place facts.
         .machine-card
           h3 Train on public-domain data
-          p Roughly fourteen million triples of federal geographic data with clean provenance and no licensing restrictions — ready for entity linking, geocoding, and evaluation datasets.
+          p
+            if triples_millions
+              | Roughly #{triples_millions} million triples
+            else
+              | Millions of triples
+            |  of federal geographic data with clean provenance and no licensing restrictions — ready for entity linking, geocoding, and evaluation datasets.
         .machine-card
           h3 Bulk or live access
           p Grab a complete release from the #[a(href='/downloads') downloads page], or query the live graph in the #[a(href='/explore') explore workspace] — the same records either way, with stable identifiers throughout.

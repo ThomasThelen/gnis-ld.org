@@ -80,6 +80,15 @@ const sparql_query = (s_accept: string, s_query: string, fk_query: SparqlCallbac
 };
 
 const k_app = express();
+// The SPARQL proxy accepts queries only. Any other method would be forwarded
+// to GraphDB's repository API, where DELETE removes the repository.
+k_app.all('/sparql', (d_req: Request, d_res: Response, f_next: NextFunction) => {
+	if ('GET' === d_req.method || 'POST' === d_req.method) {
+		f_next();
+		return;
+	}
+	d_res.set('Allow', 'GET, POST').status(405).end('Only GET and POST are allowed');
+});
 k_app.use(createProxyMiddleware({
 	target: D_URL_ENDPOINT.origin,
 	// exact match: a bare string is a prefix filter
@@ -87,20 +96,13 @@ k_app.use(createProxyMiddleware({
 	pathRewrite: {
 		'^/sparql': '/repositories/gnis-ld',
 	},
-}));
-// Proxy that takes /data and redirects to GraphDB for a graph dump
-k_app.use(createProxyMiddleware({
-	target: D_URL_ENDPOINT.origin,
-	// exact match: the '/data' prefix would swallow /dataset
-	pathFilter: (s_path: string) => '/data' === s_path,
-	pathRewrite: {
-		'^/data': '/repositories/gnis-ld/statements',
-	},
 	on: {
-		proxyReq: (proxyReq) => {
-			// Add the query parameters to the GraphDB request since it can't
-			// be done in the pathRewrite expression
-			proxyReq.path += '?infer=false&context=null&Accept=text%2Fplain';
+		// The credentials are removed, so a request through the proxy has
+		// GraphDB's anonymous read-only access even when it has the admin
+		// password
+		proxyReq: (d_proxy_req) => {
+			d_proxy_req.removeHeader('authorization');
+			d_proxy_req.removeHeader('cookie');
 		},
 	},
 }));
@@ -116,7 +118,6 @@ interface ReleaseSidecar {
 	id?: string;
 	published?: string;
 	triples?: string;
-	size?: string;
 }
 
 interface Release {
@@ -180,7 +181,7 @@ const list_releases = (): Release[] => {
 				? `20${m_date[1].slice(0, 2)}-${m_date[1].slice(2, 4)}-${m_date[1].slice(4, 6)}`
 				: d_stat.mtime.toISOString().slice(0, 10)),
 			triples: h_meta.triples || '—',
-			size: h_meta.size || format_size(d_stat.size),
+			size: format_size(d_stat.size),
 			url: '/archive/' + s_file,
 		};
 		if (/historical/i.test(s_file)) h_historical[h_entry.id] = h_entry;
@@ -200,12 +201,40 @@ k_app.get('/resource/metadata/releases.json', (d_req: Request, d_res: Response) 
 	d_res.json(list_releases());
 });
 
-// VoID/DCAT description: the static base document plus release records
-// generated from the archive volume
+/**
+ * Counts the triples of the current release and its historical companion,
+ * which are the dumps loaded into the SPARQL endpoint.
+ *
+ * @param a_releases - Releases from list_releases, newest first.
+ * @returns The count, or null when there is no release or a dump's sidecar
+ * has no triple count.
+ */
+const served_triples = (a_releases: Release[]): number | null => {
+	const h_current = a_releases[0];
+	if (!h_current) return null;
+	let c_triples = 0;
+	for (const h_dump of [h_current, h_current.historical]) {
+		if (!h_dump) continue;
+		const s_digits = h_dump.triples.replace(/,/g, '');
+		if (!/^\d+$/.test(s_digits)) return null;
+		c_triples += Number(s_digits);
+	}
+	return c_triples;
+};
+
+// VoID/DCAT description: the static base document plus the triple count and
+// release records generated from the archive volume
 k_app.get('/resource/metadata/void.ttl', (d_req: Request, d_res: Response) => {
 	let s_void = fs.readFileSync(path.join(PD_RESOURCES, 'metadata/void.ttl'), 'utf8');
 	const p_dataset = `http://${S_DATA_HOST}${S_DATA_PATH}/gnis`;
-	for (const h_release of list_releases()) {
+	const a_releases = list_releases();
+	const c_triples = served_triples(a_releases);
+	if (c_triples !== null) {
+		s_void += `
+<${p_dataset}> void:triples ${c_triples} .
+`;
+	}
+	for (const h_release of a_releases) {
 		const s_slug = h_release.id.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 		const s_historical = h_release.historical ? ` ;
     dcat:distribution [
@@ -265,7 +294,11 @@ k_app.get([
 	'/',
 ], (d_req: Request, d_res: Response) => {
 	d_res.type('text/html');
-	d_res.render('index', { base_url: S_DATA_HOST });
+	const c_triples = served_triples(list_releases());
+	d_res.render('index', {
+		base_url: S_DATA_HOST,
+		triples_millions: c_triples === null ? null : Math.round(c_triples / 1e6),
+	});
 });
 
 // explore page (formerly /queries)
