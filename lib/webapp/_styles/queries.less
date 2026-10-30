@@ -134,12 +134,17 @@
   background-color: #fff;
   overflow: hidden;
 
-  .view-tabs {
+  .viz-bar {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
-    padding: 0.5rem 0.75rem;
+    gap: 1rem;
+    padding: 0.6rem 1rem;
     border-bottom: 1px solid @border;
+
+    .viz-title {
+      font-weight: 700;
+      color: @ink;
+    }
 
     .status {
       margin-left: auto;
@@ -149,35 +154,6 @@
       &.error {
         color: #b3402a;
       }
-    }
-
-    .view-tab {
-      font-family: inherit;
-      font-size: 0.88rem;
-      font-weight: 600;
-      color: @muted;
-      background: none;
-      border: none;
-      border-radius: 8px;
-      padding: 0.45em 1em;
-      cursor: pointer;
-
-      &:hover {
-        color: @primary;
-      }
-
-      &.active {
-        color: @primary;
-        background-color: @surface-alt;
-      }
-    }
-  }
-
-  .view-pane {
-    display: none;
-
-    &.active {
-      display: block;
     }
   }
 
@@ -197,6 +173,146 @@
 }
 
 // Graph view
+.graph-area {
+  position: relative;
+  overflow: hidden;
+}
+
+.zoom-controls {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid @border;
+  border-radius: 8px;
+  background-color: #fff;
+  overflow: hidden;
+
+  button {
+    width: 2rem;
+    height: 2rem;
+    font-family: inherit;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: @ink;
+    background: none;
+    border: none;
+    cursor: pointer;
+
+    & + button {
+      border-top: 1px solid @border;
+    }
+
+    &:hover {
+      color: @primary;
+      background-color: @surface-alt;
+    }
+  }
+}
+
+.node-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 340px;
+  max-width: 85%;
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  border-left: 1px solid @border;
+  box-shadow: -6px 0 18px rgba(21, 76, 121, 0.08);
+  transform: translateX(100%);
+  visibility: hidden;
+  transition: transform 0.2s ease, visibility 0.2s;
+
+  &.open {
+    transform: none;
+    visibility: visible;
+  }
+
+  .node-panel-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem 0.6rem 1rem;
+    border-bottom: 1px solid @border;
+  }
+
+  .node-panel-title {
+    flex: 1;
+    font-weight: 700;
+    color: @ink;
+    overflow-wrap: anywhere;
+  }
+
+  .node-panel-close {
+    font-size: 1.3rem;
+    line-height: 1;
+    color: @muted;
+    background: none;
+    border: none;
+    padding: 0.2rem 0.4rem;
+    cursor: pointer;
+
+    &:hover {
+      color: @primary;
+    }
+  }
+
+  #node-panel-body {
+    flex: 1;
+    overflow: auto;
+    padding: 0.75rem 1rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .node-iri {
+    display: block;
+    margin: 0 0 0.75rem;
+    font-family: @font-mono;
+    font-size: 0.78rem;
+    overflow-wrap: anywhere;
+  }
+
+  .node-literal {
+    margin: 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .node-status {
+    color: @muted;
+
+    &.error {
+      color: #b3402a;
+    }
+  }
+
+  .node-props {
+    margin: 0;
+
+    dt {
+      margin-top: 0.6rem;
+      font-family: @font-mono;
+      font-size: 0.75rem;
+      color: @muted;
+    }
+
+    dd {
+      margin: 0.1rem 0 0;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  .node-lang {
+    margin-left: 0.3em;
+    font-size: 0.75rem;
+    color: @muted;
+  }
+}
+
 .graph-svg {
   display: block;
   width: 100%;
@@ -246,6 +362,11 @@
     &.literal circle {
       fill: #9db8d0;
     }
+
+    &.selected circle {
+      stroke: #f2a33a;
+      stroke-width: 3;
+    }
   }
 }
 
@@ -286,61 +407,6 @@
     .term-uri {
       font-family: @font-mono;
       font-size: 0.8rem;
-    }
-  }
-}
-
-// Charts (types & bubbles)
-.bar-chart,
-.bubble-chart {
-  display: block;
-  width: 100%;
-  height: auto;
-  padding: 0.5rem 0;
-}
-
-.bar-chart {
-  .bar-name {
-    font-family: @font-sans;
-    font-size: 13px;
-    fill: @ink;
-    text-anchor: end;
-    dominant-baseline: central;
-  }
-
-  .bar-value {
-    font-family: @font-sans;
-    font-size: 12.5px;
-    font-weight: 600;
-    fill: @muted;
-    dominant-baseline: central;
-  }
-
-  .bar-row:hover path {
-    fill: darken(#2f80c3, 8%);
-  }
-}
-
-.bubble-chart {
-  .bubble-name,
-  .bubble-value {
-    font-family: @font-sans;
-    text-anchor: middle;
-    fill: @ink;
-    font-size: 13px;
-    font-weight: 600;
-
-    &.inside {
-      fill: #fff;
-    }
-  }
-
-  .bubble-value {
-    font-weight: 400;
-    font-size: 12px;
-
-    &.inside {
-      fill: rgba(255, 255, 255, 0.85);
     }
   }
 }

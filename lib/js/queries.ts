@@ -1,4 +1,4 @@
-import {prefixes, $, el, safeUri, shortLabel, termLabel, postSparql, SelectResults, SparqlBinding, SparqlTerm} from './shared/sparql';
+import {prefixes, $, el, safeUri, shortLabel, termLabel, postSparql, parseSelect, SelectResults, SparqlBinding, SparqlTerm} from './shared/sparql';
 
 const EXAMPLES: Record<string, string> = {
 	california: prefixes('rdf', 'rdfs', 'gnis', 'gnisf-alias') +
@@ -33,8 +33,18 @@ const EXAMPLES: Record<string, string> = {
 
 const MAX_GRAPH_NODES = 300;
 const MAX_TABLE_ROWS = 500;
-const MAX_CATEGORIES = 14;
-const MARK_HUE = '#2f80c3';
+const MAX_PANEL_ROWS = 300;
+// Zoom factor per pixel of wheel scroll. A mouse wheel notch is about 100
+// pixels, which zooms by about 10%.
+const ZOOM_PER_PIXEL = 0.001;
+// Zoom factor of one click on the + or - button
+const ZOOM_STEP = 1.25;
+// Pointer movement, in pixels, below which a press on a node is a click
+// rather than a drag
+const CLICK_SLOP = 4;
+// An IRI that contains one of these characters can't be written as <IRI>
+// in a query
+const R_IRI_UNSAFE = /[<>"{}|^`\\\s]/;
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -42,19 +52,14 @@ type QueryResult =
 	| { kind: 'select'; json: SelectResults; body: string }
 	| { kind: 'raw'; body: string };
 
-type ViewName = 'graph' | 'types' | 'bubbles';
-
 interface Sim { alpha: number; stop: boolean; running: boolean }
 
-interface Cat { label: string; count: number }
-
-interface Aggregate { catVar: string; subjVar: string; cats: Cat[] }
-
 let lastResult: QueryResult | null = null;
-let dirty: Record<ViewName, boolean> = {graph: false, types: false, bubbles: false};
 let sim: Sim | null = null;   // running graph simulation, stopped when the graph rerenders
 let runSeq = 0;   // request token
 let blobUrl: string | null = null;
+let panelSeq = 0;   // node panel request token
+let selectedNode: SVGElement | null = null;
 
 
 /**
@@ -82,39 +87,6 @@ function svgEl<T extends SVGElement = SVGElement>(
 function emptyState(pane: HTMLElement, message: string): void {
 	pane.innerHTML = '';
 	pane.appendChild(el('div', {class: 'empty-state'}, message));
-}
-
-/**
- * Returns the name of the currently active view tab.
- *
- * @returns The active view, defaulting to the graph.
- */
-function activeView(): ViewName {
-	const tab = document.querySelector<HTMLElement>('.view-tab.active');
-	return (tab?.dataset.view as ViewName) || 'graph';
-}
-
-/**
- * Marks every view stale and renders only the visible pane; the others
- * render lazily on tab activation.
- */
-function markDirtyAndRender() {
-	dirty = {graph: true, types: true, bubbles: true};
-	renderView(activeView());
-	renderTable();
-}
-
-/**
- * Renders a view if it is stale.
- *
- * @param view - View to render.
- */
-function renderView(view: ViewName): void {
-	if (!lastResult || !dirty[view]) return;
-	dirty[view] = false;
-	if (view === 'graph') renderGraph();
-	else if (view === 'types') renderTypes();
-	else renderBubbles();
 }
 
 /**
@@ -154,7 +126,8 @@ function runQuery() {
 			lastResult = {kind: 'raw', body};
 			status.textContent = 'Non-tabular response · ' + ms + ' ms';
 		}
-		markDirtyAndRender();
+		renderGraph();
+		renderTable();
 	})
 	.catch((err) => {
 		if (seq !== runSeq) return;
@@ -164,227 +137,6 @@ function runQuery() {
 	.then(() => {
 		if (seq === runSeq) btn.disabled = false;
 	});
-}
-
-/**
- * Finds a categorical breakdown of a result set: a subject variable and a
- * low-cardinality URI variable to group it by.
- *
- * @param json - SELECT result set.
- * @returns The chosen variables and per-category subject counts, or null
- * when no categorical variable exists.
- */
-function aggregate(json: SelectResults): Aggregate | null {
-	const vars = json.head.vars;
-	const rows = json.results.bindings;
-	if (!rows.length) return null;
-
-	const subjVar = vars.find((v) => rows.some((r) => r[v]?.type === 'uri'));
-	if (!subjVar) return null;
-
-	let catVar: string | null = null;
-	if (vars.includes('type') && 'type' !== subjVar) {
-		catVar = 'type';
-	}
-	else {
-		let best = Infinity;
-		for (const v of vars) {
-			if (v === subjVar) continue;
-			const values = new Set<string>();
-			let allUri = true;
-			for (const r of rows) {
-				const term = r[v];
-				if (!term) continue;
-				if (term.type !== 'uri') { allUri = false; break; }
-				values.add(term.value);
-			}
-			if (allUri && values.size >= 2 && values.size <= 60 && values.size < best) {
-				best = values.size;
-				catVar = v;
-			}
-		}
-	}
-	if (!catVar) return null;
-
-	const counts = new Map<string, Set<string>>(); // Maps the category label to the set of subjects
-	for (const r of rows) {
-		const cterm = r[catVar];
-		const sterm = r[subjVar];
-		if (!cterm || !sterm) continue;
-		const label = shortLabel(cterm.value);
-		if (!counts.has(label)) counts.set(label, new Set());
-		counts.get(label)!.add(sterm.value);
-	}
-
-	let cats = Array.from(counts.entries())
-		.map(([label, subjects]) => ({label, count: subjects.size}))
-		.sort((a, b) => b.count - a.count);
-
-	if (cats.length > MAX_CATEGORIES) {
-		const rest = cats.slice(MAX_CATEGORIES);
-		cats = cats.slice(0, MAX_CATEGORIES);
-		cats.push({label: 'Other', count: rest.reduce((s, c) => s + c.count, 0)});
-	}
-	return {catVar, subjVar, cats};
-}
-
-/**
- * Aggregates the last result for a chart pane, rendering an empty state
- * when that is not possible.
- *
- * @param pane - Pane to receive the empty state on failure.
- * @returns The aggregate, or null when one could not be built.
- */
-function requireAggregate(pane: HTMLElement): Aggregate | null {
-	if (!lastResult || lastResult.kind !== 'select') {
-		emptyState(pane, 'This response is not a SELECT result set — see the table below.');
-		return null;
-	}
-	const agg = aggregate(lastResult.json);
-	if (!agg || !agg.cats.length) {
-		emptyState(pane, 'No categorical variable to chart. Include something like ?type in your SELECT.');
-		return null;
-	}
-	return agg;
-}
-
-/**
- * Renders the bar chart of category counts.
- */
-function renderTypes() {
-	const pane = $('#types-view');
-	const agg = requireAggregate(pane);
-	if (!agg) return;
-	pane.innerHTML = '';
-
-	const cats = agg.cats;
-	const max = Math.max(...cats.map((c) => c.count));
-
-	const GUTTER = 230;      // category labels
-	const VALUE_GAP = 56;    // room for value labels at bar tips
-	const W = 1000;
-	const ROW = 34;
-	const BAR = 22;          // ≤24px thick
-	const PAD_TOP = 12;
-	const H = PAD_TOP * 2 + cats.length * ROW;
-	const plotW = W - GUTTER - VALUE_GAP - 16;
-
-	const svg = svgEl('svg', {viewBox: '0 0 ' + W + ' ' + H, class: 'bar-chart', role: 'img',
-		'aria-label': 'Count of results by ' + agg.catVar});
-
-	cats.forEach((c, i) => {
-		const y = PAD_TOP + i * ROW + (ROW - BAR) / 2;
-		const w = Math.max((c.count / max) * plotW, 2);
-		const g = svgEl('g', {class: 'bar-row'});
-
-		const name = svgEl('text', {x: GUTTER - 12, y: y + BAR / 2, class: 'bar-name'});
-		name.textContent = c.label;
-		g.appendChild(name);
-
-		// square at the baseline, 4px rounded data-end
-		const r = Math.min(4, w);
-		const x0 = GUTTER;
-		const bar = svgEl('path', {d:
-			'M' + x0 + ' ' + y +
-			' H' + (x0 + w - r) +
-			' Q' + (x0 + w) + ' ' + y + ' ' + (x0 + w) + ' ' + (y + r) +
-			' V' + (y + BAR - r) +
-			' Q' + (x0 + w) + ' ' + (y + BAR) + ' ' + (x0 + w - r) + ' ' + (y + BAR) +
-			' H' + x0 + ' Z',
-			fill: MARK_HUE});
-		const title = svgEl('title');
-		title.textContent = c.label + ': ' + c.count.toLocaleString();
-		bar.appendChild(title);
-		g.appendChild(bar);
-
-		const value = svgEl('text', {x: x0 + w + 10, y: y + BAR / 2, class: 'bar-value'});
-		value.textContent = c.count.toLocaleString();
-		g.appendChild(value);
-
-		svg.appendChild(g);
-	});
-
-	pane.appendChild(svg);
-}
-
-/**
- * Renders the bubble chart of category counts.
- */
-function renderBubbles() {
-	const pane = $('#bubbles-view');
-	const agg = requireAggregate(pane);
-	if (!agg) return;
-	pane.innerHTML = '';
-
-	const cats = agg.cats;
-	const W = 1000, H = 560;
-	const max = Math.max(...cats.map((c) => c.count));
-	const R_MIN = 22, R_MAX = 110;
-	const scale = (count: number): number => R_MIN + (R_MAX - R_MIN) * Math.sqrt(count / max);
-
-	// seed on a ring, then relax with a simple collision push toward center
-	const nodes = cats.map((c, i) => {
-		const angle = (i / cats.length) * Math.PI * 2;
-		return {
-			...c,
-			r: scale(c.count),
-			x: W / 2 + 200 * Math.cos(angle),
-			y: H / 2 + 140 * Math.sin(angle),
-		};
-	});
-	for (let step = 0; step < 400; step++) {
-		for (const n of nodes) {
-			n.x += (W / 2 - n.x) * 0.02;
-			n.y += (H / 2 - n.y) * 0.02;
-		}
-		for (let i = 0; i < nodes.length; i++) {
-			for (let j = i + 1; j < nodes.length; j++) {
-				const a = nodes[i], b = nodes[j];
-				let dx = b.x - a.x, dy = b.y - a.y;
-				let d = Math.sqrt(dx * dx + dy * dy) || 0.01;
-				const overlap = a.r + b.r + 6 - d;
-				if (overlap > 0) {
-					const push = overlap / 2;
-					dx /= d; dy /= d;
-					a.x -= dx * push; a.y -= dy * push;
-					b.x += dx * push; b.y += dy * push;
-				}
-			}
-		}
-	}
-
-	const svg = svgEl('svg', {viewBox: '0 0 ' + W + ' ' + H, class: 'bubble-chart', role: 'img',
-		'aria-label': 'Results by ' + agg.catVar + ', bubble area proportional to count'});
-
-	for (const n of nodes) {
-		const g = svgEl('g', {class: 'bubble'});
-		// 2px surface ring keeps touching bubbles legible
-		const circle = svgEl('circle', {cx: n.x, cy: n.y, r: n.r, fill: MARK_HUE,
-			stroke: '#fff', 'stroke-width': 2});
-		const title = svgEl('title');
-		title.textContent = n.label + ': ' + n.count.toLocaleString();
-		circle.appendChild(title);
-		g.appendChild(circle);
-
-		// label inside when it fits, otherwise below the bubble in ink
-		const fits = n.label.length * 7.5 < n.r * 1.7;
-		if (fits) {
-			const name = svgEl('text', {x: n.x, y: n.y - 4, class: 'bubble-name inside'});
-			name.textContent = n.label;
-			const value = svgEl('text', {x: n.x, y: n.y + 14, class: 'bubble-value inside'});
-			value.textContent = n.count.toLocaleString();
-			g.appendChild(name);
-			g.appendChild(value);
-		}
-		else {
-			const name = svgEl('text', {x: n.x, y: n.y + n.r + 16, class: 'bubble-name'});
-			name.textContent = n.label + ' · ' + n.count.toLocaleString();
-			g.appendChild(name);
-		}
-		svg.appendChild(g);
-	}
-
-	pane.appendChild(svg);
 }
 
 interface GNode {
@@ -465,11 +217,91 @@ function buildGraph(json: SelectResults) {
 }
 
 /**
+ * Hides the node panel and clears the node selection.
+ */
+function closeNodePanel(): void {
+	panelSeq++;
+	$('#node-panel').classList.remove('open');
+	$('#node-panel').setAttribute('aria-hidden', 'true');
+	if (selectedNode) selectedNode.classList.remove('selected');
+	selectedNode = null;
+}
+
+/**
+ * Shows a node's data in the node panel. An IRI node's triples are queried
+ * from the endpoint. A literal node shows its full value.
+ *
+ * @param node - The clicked node.
+ * @param g - The node's SVG group, marked as selected.
+ */
+function openNodePanel(node: GNode, g: SVGElement): void {
+	const seq = ++panelSeq;
+	if (selectedNode) selectedNode.classList.remove('selected');
+	selectedNode = g;
+	g.classList.add('selected');
+
+	const panel = $('#node-panel');
+	const title = $('#node-panel-title');
+	const body = $('#node-panel-body');
+	panel.classList.add('open');
+	panel.setAttribute('aria-hidden', 'false');
+	title.textContent = node.label;
+	body.innerHTML = '';
+
+	if (node.kind === 'literal') {
+		body.appendChild(el('p', {class: 'node-literal'}, node.full));
+		return;
+	}
+
+	body.appendChild(safeUri(node.full)
+		? el('a', {class: 'node-iri', href: node.full, target: '_blank', rel: 'noopener'}, node.full)
+		: el('p', {class: 'node-iri'}, node.full));
+	if (R_IRI_UNSAFE.test(node.full)) return;
+
+	const status = el('p', {class: 'node-status'}, 'Loading…');
+	body.appendChild(status);
+	postSparql('SELECT ?p ?o WHERE { <' + node.full + '> ?p ?o } LIMIT ' + (MAX_PANEL_ROWS + 1), undefined, false)
+	.then(({body: s_body}) => {
+		if (seq !== panelSeq) return;
+		const rows = parseSelect(s_body).results.bindings;
+		status.remove();
+		if (!rows.length) {
+			body.appendChild(el('p', {class: 'node-status'}, 'No triples have this IRI as their subject.'));
+			return;
+		}
+		const list = el('dl', {class: 'node-props'});
+		for (const row of rows.slice(0, MAX_PANEL_ROWS)) {
+			const p = row.p!, o = row.o!;
+			list.appendChild(el('dt', {title: p.value}, shortLabel(p.value)));
+			const dd = el('dd');
+			if (o.type === 'uri' && safeUri(o.value)) {
+				dd.appendChild(el('a', {href: o.value, target: '_blank', rel: 'noopener', title: o.value}, shortLabel(o.value)));
+			}
+			else {
+				dd.textContent = o.value;
+				if (o['xml:lang']) dd.appendChild(el('span', {class: 'node-lang'}, '@' + o['xml:lang']));
+			}
+			list.appendChild(dd);
+		}
+		body.appendChild(list);
+		if (rows.length > MAX_PANEL_ROWS) {
+			body.appendChild(el('p', {class: 'node-status'}, 'Showing the first ' + MAX_PANEL_ROWS + ' triples.'));
+		}
+	})
+	.catch((err) => {
+		if (seq !== panelSeq) return;
+		status.textContent = err.message;
+		status.classList.add('error');
+	});
+}
+
+/**
  * Renders the interactive force-directed graph of the last result.
  */
 function renderGraph() {
 	const pane = $('#graph-view');
 	pane.innerHTML = '';
+	closeNodePanel();
 	if (sim) { sim.stop = true; sim = null; }
 
 	if (!lastResult || lastResult.kind !== 'select') {
@@ -557,7 +389,10 @@ function renderGraph() {
 			ev.stopPropagation();
 			ev.preventDefault();
 			node.fixed = true;
+			let dragged = false;
 			const move = (mv: PointerEvent) => {
+				if (!dragged && Math.hypot(mv.clientX - ev.clientX, mv.clientY - ev.clientY) < CLICK_SLOP) return;
+				dragged = true;
 				const p = svgPoint(mv);
 				if (!p) return;
 				const vp = toViewport(p);
@@ -565,8 +400,9 @@ function renderGraph() {
 				node.y = vp.y;
 				kick(0.3);
 			};
-			const up = () => {
+			const up = (upEv: PointerEvent) => {
 				node.fixed = false;
+				if (!dragged && upEv.type === 'pointerup') openNodePanel(node, g);
 				window.removeEventListener('pointermove', move);
 				window.removeEventListener('pointerup', up);
 				window.removeEventListener('pointercancel', up);
@@ -578,18 +414,35 @@ function renderGraph() {
 		return {node, g};
 	});
 
+	// Multiplies the scale by a factor, between 0.2 and 6, keeping the point
+	// p (in svg user units) at the same place on screen
+	const zoomAt = (p: {x: number; y: number}, factor: number): void => {
+		const before = toViewport(p);
+		scale = Math.min(6, Math.max(0.2, scale * factor));
+		tx = p.x - before.x * scale;
+		ty = p.y - before.y * scale;
+		applyTransform();
+	};
+
 	svg.addEventListener('wheel', (ev) => {
 		ev.preventDefault();
 		const p = svgPoint(ev);
 		if (!p) return;
-		const before = toViewport(p);
-		const factor = ev.deltaY < 0 ? 1.15 : 1 / 1.15;
-		scale = Math.min(6, Math.max(0.2, scale * factor));
-		// keep the point under the cursor fixed
-		tx = p.x - before.x * scale;
-		ty = p.y - before.y * scale;
-		applyTransform();
+		// deltaMode 1 reports lines instead of pixels
+		const pixels = ev.deltaY * (ev.deltaMode === 1 ? 16 : 1);
+		zoomAt(p, Math.exp(-pixels * ZOOM_PER_PIXEL));
 	}, {passive: false});
+
+	const controls = el('div', {class: 'zoom-controls'});
+	for (const [text, label, factor] of [['+', 'Zoom in', ZOOM_STEP], ['−', 'Zoom out', 1 / ZOOM_STEP]] as const) {
+		const btn = el('button', {type: 'button', 'aria-label': label, title: label}, text);
+		btn.addEventListener('click', () => zoomAt({x: W / 2, y: H / 2}, factor));
+		controls.appendChild(btn);
+	}
+	// A press on the buttons does not reach the document, so it leaves the
+	// node panel open
+	controls.addEventListener('pointerdown', (ev) => ev.stopPropagation());
+	pane.appendChild(controls);
 
 	svg.addEventListener('pointerdown', (ev) => {
 		if (ev.button !== 0) return;
@@ -782,15 +635,11 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	});
 
-	document.querySelectorAll<HTMLElement>('.view-tab').forEach((tab) => {
-		tab.addEventListener('click', () => {
-			document.querySelectorAll('.view-tab').forEach((t) => t.classList.remove('active'));
-			document.querySelectorAll('.view-pane').forEach((p) => p.classList.remove('active'));
-			tab.classList.add('active');
-			const view = (tab.dataset.view as ViewName) || 'graph';
-			$('#' + view + '-view').classList.add('active');
-			renderView(view);
-		});
+	$('#node-panel-close').addEventListener('click', closeNodePanel);
+	// A press outside the panel closes it. A press on a node does not reach
+	// the document, because the node's handler stops its propagation.
+	document.addEventListener('pointerdown', (ev) => {
+		if (!$('#node-panel').contains(ev.target as Node)) closeNodePanel();
 	});
 
 	$('#run-btn').addEventListener('click', runQuery);

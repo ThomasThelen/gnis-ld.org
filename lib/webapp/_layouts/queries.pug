@@ -18,19 +18,6 @@ block content-block
       button.chip(data-example='waterfalls') Waterfalls
       button.chip(data-example='reservoirs') Reservoirs
 
-    .results-card.viz-card
-      .view-tabs(role='tablist')
-        button.view-tab.active(data-view='graph') Graph
-        button.view-tab(data-view='types') Types
-        button.view-tab(data-view='bubbles') Bubbles
-        span.status#query-status
-      .view-pane.active#graph-view
-        .empty-state Loading the graph…
-      .view-pane#types-view
-        .empty-state Run a query to see a breakdown of results by feature type.
-      .view-pane#bubbles-view
-        .empty-state Run a query to see feature types as sized bubbles.
-
     details.editor-details
       summary Edit the SPARQL
       .editor-card
@@ -38,6 +25,19 @@ block content-block
         .editor-bar
           button.run-btn#run-btn Run query
           span.hint #[kbd Ctrl]+#[kbd Enter]
+
+    .results-card.viz-card
+      .viz-bar
+        span.viz-title Graph
+        span.status#query-status
+      .graph-area
+        #graph-view
+          .empty-state Loading the graph…
+        aside.node-panel#node-panel(aria-hidden='true')
+          .node-panel-head
+            span.node-panel-title#node-panel-title
+            button.node-panel-close#node-panel-close(type='button' aria-label='Close') ×
+          #node-panel-body
 
     .results-card.table-card
       .table-bar
