@@ -30,11 +30,8 @@ The main difference between production and development builds is the base URL. F
 ```
 npm ci
 npm run build
-node lib/js/server.js -p 3006
+node dist/server.js -p 3006
 ```
-
-The server renders pug views directly from `lib/webapp/_layouts` and serves compiled assets from `dist/`.
-
 
 ## Acknowledgments
 Work on this package was supported by:

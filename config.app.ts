@@ -15,7 +15,7 @@ const P_ENDPOINT = process.env.USGS_ENDPOINT_URL || 'http://localhost:7200/repos
 const DEPLOYMENT_HOST = process.env.BASE || 'gnis-ld.org';
 
 const P_DATA_URI = `http://${DEPLOYMENT_HOST}${S_DATA_PATH}`;
-// Geometry URIs live directly under the host (no /lod), matching the
+// Geometry URIs live directly under the host, matching the
 // triplifier's GEO_BASE
 const P_GEOM_URI = `http://${DEPLOYMENT_HOST}/geometry`;
 
