@@ -1,0 +1,25 @@
+<!doctype html><html><body>
+<svg width="600" height="200" viewBox="0 0 600 200"><g font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif" font-size="88" font-weight="600" letter-spacing="-1.5">
+<text id="w" x="0" y="100">GNIS</text><text id="g" x="0" y="100">G</text><text id="n" x="0" y="100">N</text><text id="i" x="0" y="100">I</text><text id="s" x="0" y="100">S</text><text id="h" x="0" y="100">H</text></g></svg>
+<pre id="out"></pre>
+<script>
+try {
+const out = {};
+for (const id of ["w", "g", "n", "i", "s", "h"]) { const b = document.getElementById(id).getBBox(); out[id] = [b.x, b.y, b.width, b.height]; }
+// Glyph ink extents of each letter in the word, from character positions
+const t = document.getElementById("w"); out.chars = [];
+for (let k = 0; k < 4; k++) { const e = t.getExtentOfChar(k); out.chars.push([e.x, e.width]); }
+// Cap height: rasterize H and find its top ink row
+const c = document.createElement("canvas"); c.width = 200; c.height = 200; const x = c.getContext("2d");
+x.font = "600 88px -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif"; x.fillText("H", 10, 150);
+const d = x.getImageData(0, 0, 200, 200).data; let top = 200;
+for (let y = 0; y < 200 && top === 200; y++) for (let xx = 0; xx < 200; xx++) if (d[(y * 200 + xx) * 4 + 3] > 128) { top = y; break; }
+out.capHeight = 150 - top;
+// Ink extents of the whole word
+x.clearRect(0, 0, 200, 200); const c2 = document.createElement("canvas"); c2.width = 600; c2.height = 200; const y2 = c2.getContext("2d");
+y2.font = x.font; y2.letterSpacing = "-1.5px"; y2.fillText("GNIS", 0, 150); const d2 = y2.getImageData(0, 0, 600, 200).data; let right = 0, left = 600;
+for (let yy = 0; yy < 200; yy++) for (let xx = 0; xx < 600; xx++) if (d2[(yy * 600 + xx) * 4 + 3] > 128) { right = Math.max(right, xx); left = Math.min(left, xx); }
+out.inkLeft = left; out.inkRight = right;
+document.getElementById("out").textContent = JSON.stringify(out);
+} catch (e) { document.getElementById("out").textContent = "ERROR " + e; }
+</script></body></html>

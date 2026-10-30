@@ -109,17 +109,13 @@ code {
   }
 
   .brand {
-    font-weight: 700;
-    font-size: 1.2rem;
-    letter-spacing: 0.01em;
-    color: @ink;
+    display: flex;
+    align-items: center;
 
-    .brand-accent {
-      color: @primary;
-    }
-
-    &:hover {
-      text-decoration: none;
+    img {
+      display: block;
+      height: 2.1rem;
+      width: auto;
     }
   }
 
@@ -434,9 +430,10 @@ code {
     justify-content: space-between;
   }
 
-  .footer-brand {
-    color: #fff;
-    font-weight: 700;
+  .footer-brand img {
+    display: block;
+    height: 1.6rem;
+    width: auto;
   }
 
   .footer-copy {
