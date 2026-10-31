@@ -18,9 +18,9 @@ interface Facets {
 }
 
 let offset = 0;
-let lastFacets: Facets | null = null; // facets of the search being paged; Load more must not re-read the form
+let lastFacets: Facets | null = null; // facets of the search being paged
 let inFlight = false;
-const seenFeatures = new Set<string>(); // feature URIs already rendered, to dedup across pages
+const seenFeatures = new Set<string>(); // feature URIs already rendered, used to dedup across pages
 
 /**
  * Reads the current facet values from the search form.
@@ -39,7 +39,7 @@ function readFacets(): Facets {
 
 /**
  * Returns whether the location filter is usable. It needs all three fields,
- * each holding a valid number; validity is checked here before use.
+ * each holding a valid number.
  *
  * @param f - Facets to inspect.
  * @returns True when latitude, longitude, and a positive radius are all present.
@@ -105,8 +105,6 @@ ORDER BY ?name ?feature
 LIMIT ${PAGE_SIZE} OFFSET ${off}`;
 }
 
-// search
-
 /**
  * Runs a search against the endpoint and renders the results.
  *
@@ -114,9 +112,9 @@ LIMIT ${PAGE_SIZE} OFFSET ${off}`;
  * false to start a fresh search from the form.
  */
 function runSearch(append: boolean): void {
-	if (inFlight) return;
-	// A fresh search snapshots the form; Load more pages the *snapshotted*
-	// facets so edits to the form can't be mixed with a stale offset.
+	if (inFlight) {
+		return;
+	}
 	if (!append) {
 		lastFacets = readFacets();
 		seenFeatures.clear();
@@ -143,8 +141,6 @@ function runSearch(append: boolean): void {
 	status.textContent = 'Searching…';
 	status.classList.remove('error');
 
-	// Explicit types only: inference would also match the abstract classes
-	// and the state and county unit records
 	postSparql(query, undefined, false)
 	.then(({body}) => {
 		const json = parseSelect(body);

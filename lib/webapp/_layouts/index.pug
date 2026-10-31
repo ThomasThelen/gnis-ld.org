@@ -9,7 +9,7 @@ block content-block
     .hero
       .hero-copy
         h1.hero-title Resolve entities to #[span.accent stable USGS identifiers]
-        p.lede Every federally recognized place name in the United States has a persistent, dereferenceable URI in GNIS-LD. Resolve to stable identifiers you can cite, link, and query.
+        p.lede Every federally recognized place name in the United States has a persistent, dereferenceable URI in GNIS-LD. Perform Named Entity Recognition to stable identifiers you can cite, link, and query.
         .hero-actions
           a.btn-primary(href='/search') Search &amp; link
           a.btn-link(href='/explore') Explore the data
@@ -18,7 +18,7 @@ block content-block
           p.demo-sentence
             | “The climbing season on
             br
-            span.entity Denali
+            span.entity Mount McKinley
             |  begins in late April, when expedition teams fly onto the Kahiltna Glacier.”
           .demo-resolution
             svg.elbow(width='44' height='50' viewBox='0 0 44 50' aria-hidden='true')
@@ -53,43 +53,7 @@ block content-block
                 h2.hero-title Verify facts against machine-readable government data
                 p.lede Add a single #[code SERVICE] clause and any SPARQL engine can federate queries to GNIS-LD, joining your data with the authoritative USGS record.
                 .hero-actions
-                  a.btn-link(href='/integrations') Learn more
-          .carousel-slide
-            .hero
-              .hero-copy
-                h2.hero-title Two small vocabularies describe every feature
-                p.lede The #[code usgs] ontology defines what a feature is: summits, streams, dams, ridges. The #[code gnis] ontology describes what we know about it: names, counties, descriptions, and history. Together they make every record self-describing.
-                .hero-actions
-                  a.btn-link(href='/vocabularies') Browse the vocabularies
-              .hero-visual
-                .vocab-card
-                  svg.vocab-graph(viewBox='0 0 460 300' aria-hidden='true')
-                    g.vg-edges
-                      line(x1='230' y1='150' x2='104' y2='68')
-                      line(x1='230' y1='150' x2='362' y2='72')
-                      line(x1='230' y1='150' x2='106' y2='236')
-                      line(x1='230' y1='150' x2='356' y2='230')
-                    g.vg-edge-labels
-                      text(x='152' y='98') rdf:type
-                      text(x='296' y='100') gnis:officialName
-                      text(x='140' y='206') gnis:state
-                      text(x='300' y='200') gnis:county
-                    g.vg-nodes
-                      g.vg-node.hub
-                        circle(cx='230' cy='150' r='16')
-                        text(x='230' y='185') gnisf:1414314
-                      g.vg-node
-                        circle(cx='104' cy='68' r='11')
-                        text(x='104' y='46') usgs:Summit
-                      g.vg-node.literal
-                        circle(cx='362' cy='72' r='8')
-                        text(x='352' y='52') “Mount McKinley”
-                      g.vg-node
-                        circle(cx='106' cy='236' r='11')
-                        text(x='106' y='262') Alaska
-                      g.vg-node
-                        circle(cx='356' cy='230' r='11')
-                        text(x='356' y='256') Denali Borough
+                  a.btn-link(href='/docs') Learn more
           .carousel-slide
             .hero
               .hero-copy
@@ -116,7 +80,7 @@ block content-block
             .hero
               .hero-copy
                 h2.hero-title See how the record #[span.accent changes over time]
-                p.lede GNIS-LD ships a new release every quarter and provides archive data access. Releases are linked with #[code dct:isVersionOf], so you can pin an analysis to an exact version, or diff two releases to see precisely what changed and when.
+                p.lede GNIS-LD provides access to archived GNIS-LD datasets, enabling temporal workflows. Releases are linked with #[code dct:isVersionOf], so you can pin an analysis to an exact version, or diff two releases to see precisely what changed and when.
                 .hero-actions
                   a.btn-link(href='/docs#lineage') Learn how versioning works
               .hero-visual
@@ -143,13 +107,12 @@ block content-block
                     .diff-row.add
                       span.diff-release 250401
                       span.diff-val "Mount McKinley"
-                  p.version-caption Every release is archived and queryable. Compare any two.
+                  p.version-caption Every release is archived and queryable.
       button.carousel-arrow.next(type='button' aria-label='Next slide') ›
       .carousel-dots#carousel-dots
         button.carousel-dot.active(type='button' aria-label='Go to slide 1')
         button.carousel-dot(type='button' aria-label='Go to slide 2')
         button.carousel-dot(type='button' aria-label='Go to slide 3')
-        button.carousel-dot(type='button' aria-label='Go to slide 4')
 
   script.
     (function() {
@@ -202,10 +165,10 @@ block content-block
               | Roughly #{triples_millions} million triples
             else
               | Millions of triples
-            |  of federal geographic data with clean provenance and no licensing restrictions — ready for entity linking, geocoding, and evaluation datasets.
+            |  of federal geographic data with clean provenance and no licensing restrictions make entity linking, geocoding, and evaluation datasets easier.
         .machine-card
           h3 Bulk or live access
-          p Grab a complete release from the #[a(href='/downloads') downloads page], or query the live graph in the #[a(href='/explore') explore workspace] — the same records either way, with stable identifiers throughout.
+          p Grab a complete release from the #[a(href='/downloads') downloads page], or query the live graph in the #[a(href='/explore') explore workspace].
 
   //- Hero 4: crosswalks to other knowledge graphs
   section.hero-band.alt
@@ -229,10 +192,10 @@ block content-block
               span.crosswalk-arrows ⟷
               span.crosswalk-prop owl:sameAs
             span.crosswalk-pill.wd geonames:5868589
-          .crosswalk-caption Denali — one identifier, many graphs
+          .crosswalk-caption Mount McKinley has one identifier across many graphs
       .hero-copy
         h2.hero-title Crosswalk across #[span.accent Wikidata, DBpedia, and GeoNames]
-        p.lede GNIS identifiers are first-class citizens of the global knowledge graph: more than two million #[code owl:sameAs] links to Wikidata, DBpedia, and GeoNames ship in every release — harvested from Wikidata's own GNIS crosswalk and aligned against the GeoNames gazetteer — so every feature here connects outward to the rest of the linked-data web.
+        p.lede GNIS identifiers are first-class citizens of the global knowledge graph with more than two million #[code owl:sameAs] links to Wikidata, DBpedia, and GeoNames. Enrich contexts with official government data and community vetted information from the linked data cloud.
         .hero-actions
           a.btn-link(href='/docs#crosswalks') Browse the crosswalks
 

@@ -337,14 +337,6 @@ k_app.get([
 	d_res.render('about');
 });
 
-// integrations page
-k_app.get([
-	'/integrations',
-], (d_req: Request, d_res: Response) => {
-	d_res.type('text/html');
-	d_res.render('integrations', { base_url: S_DATA_HOST });
-});
-
 // entity linking folded into search; old links keep working
 k_app.get([
 	'/link',
