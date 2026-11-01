@@ -83,8 +83,21 @@ const k_app = express();
 // The SPARQL proxy accepts queries only. Any other method would be forwarded
 // to GraphDB's repository API, where DELETE removes the repository.
 k_app.all('/sparql', (d_req: Request, d_res: Response, f_next: NextFunction) => {
+	// Web pages on other origins can query the endpoint. The proxy removes
+	// credentials, so any origin is allowed.
+	d_res.set('Access-Control-Allow-Origin', '*');
 	if ('GET' === d_req.method || 'POST' === d_req.method) {
 		f_next();
+		return;
+	}
+	// CORS preflight, sent by browsers before a POST with a content type
+	// such as application/sparql-query
+	if ('OPTIONS' === d_req.method) {
+		d_res.set({
+			'Access-Control-Allow-Methods': 'GET, POST',
+			'Access-Control-Allow-Headers': 'Accept, Content-Type',
+			'Access-Control-Max-Age': '86400',
+		}).status(204).end();
 		return;
 	}
 	d_res.set('Allow', 'GET, POST').status(405).end('Only GET and POST are allowed');

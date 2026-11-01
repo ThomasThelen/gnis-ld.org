@@ -42,6 +42,8 @@ block content-block
                     span.dot
                     span.code-card-name verify.rq
                   pre.
+                    <span class="kw">PREFIX</span> gnis: <span class="str">&lt;http://#{base_url}/lod/gnis/ontology/&gt;</span>
+
                     <span class="kw">SELECT</span> ?official <span class="kw">WHERE</span> {
                       <span class="kw">SERVICE</span> <span class="str">&lt;https://#{base_url}/sparql&gt;</span> {
                         ?peak gnis:alternativeName <span class="str">"Denali"@en</span> ;
@@ -74,7 +76,9 @@ block content-block
 
                     <span class="cm"># 2. ask it questions</span>
                     <span class="cm">$</span> curl -H <span class="str">'Accept: application/sparql-results+json'</span> \
-                        -d <span class="str">'query=ASK { gnisf:1414314 gnis:county ?c }'</span> \
+                        --data-urlencode <span class="str">'query=PREFIX gnis: &lt;http://#{base_url}/lod/gnis/ontology/&gt;</span>
+                    <span class="str">            PREFIX gnisf: &lt;http://#{base_url}/lod/gnis/feature/&gt;</span>
+                    <span class="str">            ASK { gnisf:1414314 gnis:county ?c }'</span> \
                         https://#{base_url}/sparql
           .carousel-slide
             .hero
